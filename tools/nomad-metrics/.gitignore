@@ -1,0 +1,5 @@
+# The default output binary.
+nomad-metrics
+
+# The default prefix used for telemetry output.
+nomad-metrics-*
