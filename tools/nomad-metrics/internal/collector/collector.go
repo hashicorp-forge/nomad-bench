@@ -24,7 +24,7 @@ type Collector struct {
 	scrapeCfg   *config.Scrape
 }
 
-func New(basePath, addr string, logger hclog.Logger, cfg *config.Config) (*Collector, error) {
+func New(basePath, addr string, logger hclog.Logger, cfg *config.Collect) (*Collector, error) {
 
 	defaultConfig := api.DefaultConfig()
 	defaultConfig.Address = addr
@@ -101,12 +101,12 @@ func (c *Collector) Run(ctx context.Context) {
 				continue
 			}
 
-			file := filepath.Join(c.dir, strconv.FormatInt(time.Now().UnixNano(), 10)) + ".json"
+			file := filepath.Join(c.dir, strconv.FormatInt(time.Now().UnixNano(), 10))
 
-			if err := write.JSON(c.logger, file, metricBytes); err != nil {
-				c.logger.Error("failed to create metric file", "error", err)
+			if err := write.JSON(c.logger, file+".json", metricBytes); err != nil {
+				c.logger.Error("failed to write JSON metric file", "error", err)
 			} else {
-				c.logger.Info("successfully wrote metrics to file", "file", file)
+				c.logger.Info("successfully wrote JSON metrics to file", "file", file)
 			}
 		}
 	}

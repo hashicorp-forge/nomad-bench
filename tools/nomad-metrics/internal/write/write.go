@@ -21,10 +21,10 @@ func JSON(logger hclog.Logger, file string, data []byte) error {
 		prettyJSON.Write(data)
 	}
 
-	return write(file, prettyJSON.Bytes())
+	return WriteBlob(file, prettyJSON.Bytes())
 }
 
-func write(file string, data []byte) error {
+func WriteBlob(file string, data []byte) error {
 
 	f, err := os.Create(file)
 	if err != nil {
