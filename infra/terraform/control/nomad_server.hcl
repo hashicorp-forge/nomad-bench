@@ -9,3 +9,8 @@ server {
 }
 
 data_dir = "/home/ubuntu/nomad_tmp"
+
+limits {
+  http_max_conns_per_client = 0
+  rpc_max_conns_per_client  = 0
+}

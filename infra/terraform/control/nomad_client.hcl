@@ -7,6 +7,12 @@ client {
   }
 }
 
+plugin "docker" {
+  config {
+    allow_privileged = true
+  }
+}
+
 plugin "raw_exec" {
   config {
     enabled = true

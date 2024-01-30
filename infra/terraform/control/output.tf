@@ -9,6 +9,9 @@ ssh -i keys/${local.random_name}.pem ubuntu@${aws_instance.bastion.public_ip}
 
 In order to provision the cluster, you can run the following Ansible command:
 ansible-playbook -i ./ansible/${local.random_name}_inventory.ini ./ansible/playbook_client.yaml
+
+To run the Nomad Nodesim job, you can run the following command:
+nomad run -address=http://${aws_lb.nomad_lb.dns_name}:80 -var="server_addr=[\"${aws_instance.nomad_server.0.private_ip}:4647\"]" jobs/nomad-nodesim.nomad.hcl
 EOM
 }
 
