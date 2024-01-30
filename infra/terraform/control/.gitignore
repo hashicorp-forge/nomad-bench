@@ -1,2 +1,10 @@
+# Terraform state files and storage.
 terraform.tfstate
 terraform.tfstate.backup
+.terraform
+
+# Generated SSH keys.
+keys/
+
+# Generated Ansible iventory files.
+ansible/nomad-bench-permanent-*_inventory.ini

@@ -1,0 +1,7 @@
+- name: "check_cni_plugins"
+  ansible.builtin.stat:
+    path: "{{ cni_plugins_path }}"
+  register: "cni_plugins_dir_stat"
+
+- import_tasks: install.yaml
+  when: not cni_plugins_dir_stat.stat.exists

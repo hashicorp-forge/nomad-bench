@@ -196,14 +196,3 @@ resource "aws_lb_target_group_attachment" "nomad" {
   target_id        = each.value.id
   port             = 4646
 }
-
-output "message" {
-  value = <<EOM
-Your cluster has been provisioned!
-
-Load balancer address: ${aws_lb.nomad_lb.dns_name}
-
-SSH into the bastion host:
-ssh -i keys/${local.random_name}.pem ubuntu@${aws_instance.bastion.public_ip}
-EOM
-}
