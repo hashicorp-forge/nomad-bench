@@ -1,5 +1,8 @@
+data_dir = "/opt/nomad/data"
+
 client {
   enabled = true
+
   server_join {
     retry_join     = ["provider=aws tag_key=Nomad_role tag_value=${role}"]
     retry_max      = 5
@@ -19,4 +22,8 @@ plugin "raw_exec" {
   }
 }
 
-data_dir = "/home/ubuntu/nomad_tmp"
+telemetry {
+  publish_allocation_metrics = true
+  publish_node_metrics       = true
+  prometheus_metrics         = true
+}
