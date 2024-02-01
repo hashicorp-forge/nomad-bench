@@ -1,7 +1,3 @@
-output "name" {
-  value = local.cluster_name
-}
-
 output "server_ids" {
   value = aws_instance.servers.*.id
 }

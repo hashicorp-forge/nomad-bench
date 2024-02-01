@@ -1,5 +1,5 @@
 resource "aws_iam_instance_profile" "nomad_instance_profile" {
-  name = "nomad_instance_profile"
+  name = "${var.project_name}_nomad_instance"
   role = aws_iam_role.nomad_instance_role.name
 }
 
@@ -15,7 +15,7 @@ data "aws_iam_policy_document" "instance_assume_role_policy" {
 }
 
 resource "aws_iam_role" "nomad_instance_role" {
-  name               = "nomad_instance_role"
+  name               = "${var.project_name}_nomad_instance"
   assume_role_policy = data.aws_iam_policy_document.instance_assume_role_policy.json
   inline_policy {
     name = "describe_instances_policy"

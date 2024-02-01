@@ -1,14 +1,14 @@
 resource "aws_lb" "alb" {
-  name               = "${local.project_name}-lb"
+  name               = var.project_name
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
-  subnets            = [for s in aws_subnet.public : s.id]
+  subnets            = var.subnet_ids
 
   enable_deletion_protection = false
 
   tags = {
-    Name = "${local.project_name}_lb"
+    Name = "${var.project_name}_lb"
   }
 }
 
@@ -23,13 +23,13 @@ resource "aws_lb_listener" "nomad_listener" {
   }
 
   tags = {
-    Name = "${local.project_name}_listener"
+    Name = var.project_name
   }
 }
 
 resource "aws_lb_target_group" "nomad" {
-  name     = "${local.project_name}-nomad-tg"
-  vpc_id   = aws_vpc.vpc.id
+  name     = var.project_name
+  vpc_id   = var.vpc_id
   port     = 4646
   protocol = "HTTP"
 
@@ -39,7 +39,7 @@ resource "aws_lb_target_group" "nomad" {
 }
 
 resource "aws_lb_target_group_attachment" "nomad" {
-  for_each = { for i, id in module.control_cluster.server_ids : i => id }
+  for_each = { for i, id in var.nomad_server_instance_ids : i => id }
 
   target_group_arn = aws_lb_target_group.nomad.arn
   target_id        = each.value
