@@ -16,11 +16,6 @@ Open SSH tunnel to Nomad:
 In order to provision the cluster, you can run the following Ansible command:
   cd ../../../../ansible && \
     ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_client.yaml
-
-To run the Nomad Nodesim job, you can run the following command:
-  nomad run -address=http://${module.core_cluster_alb.alb_dns_name}:80 \
-    -var="server_addr=[\"<PRIVATE IP>:4647\"]" \
-    ../../../../jobs/nomad-nodesim.nomad.hcl
 EOM
 }
 
@@ -68,7 +63,7 @@ ${clientIP}
 control_server
 
 [client:children]
-control_server
+control_client
 
 [server:vars]
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o ProxyCommand="ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ${abspath(path.root)}/keys/${var.project_name}.pem -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
