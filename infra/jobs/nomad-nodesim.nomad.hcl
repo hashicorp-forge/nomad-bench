@@ -1,6 +1,6 @@
 variable "group_num" {
   type        = number
-  default     = 20
+  default     = 146
   description = "The number of nodesim allocations to trigger; each allocation runs 100 client processes."
 }
 
@@ -35,7 +35,21 @@ job "nomad-nodesim" {
           local.server_addr_flags,
           "-node-num=100",
           "-work-dir=${NOMAD_TASK_DIR}",
+          "-config=${NOMAD_TASK_DIR}/config.hcl",
         ]
+      }
+
+      template {
+        data = <<EOH
+node {
+  options = {
+    "fingerprint.denylist" = "env_aws,env_gce,env_azure,env_digitalocean"
+  }
+}
+EOH
+
+        change_mode = "restart"
+        destination = "${NOMAD_TASK_DIR}/config.hcl"
       }
 
       resources {

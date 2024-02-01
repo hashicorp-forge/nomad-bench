@@ -1,11 +1,3 @@
-locals {
-  cluster_name = var.name != "" ? var.name : "nomad-benchmark-${random_pet.cluster_name[0].id}"
-}
-
-resource "random_pet" "cluster_name" {
-  count = var.name != "" ? 0 : 1
-}
-
 resource "aws_instance" "servers" {
   count = var.server_count
 
@@ -14,14 +6,14 @@ resource "aws_instance" "servers" {
   subnet_id              = element(var.subnet_ids, count.index % length(var.subnet_ids))
   vpc_security_group_ids = var.security_groups
   key_name               = var.key_name
-  iam_instance_profile   = var.iam_instance_profile
+  iam_instance_profile   = aws_iam_instance_profile.nomad_instance_profile.id
 
   associate_public_ip_address = false
 
   user_data = templatefile("${path.module}/nomad.sh", {
     nomad_conf = templatefile("${path.module}/nomad_server.hcl", {
-      role   = "${local.cluster_name}_server"
-      expect = "${var.server_count}"
+      role   = "${var.project_name}_server"
+      expect = var.server_count
     })
   })
   user_data_replace_on_change = true
@@ -37,8 +29,8 @@ resource "aws_instance" "servers" {
   }
 
   tags = {
-    Name       = "${local.cluster_name}_server_${count.index}"
-    Nomad_role = "${local.cluster_name}_server"
+    Name       = "${var.project_name}_server_${count.index}"
+    Nomad_role = "${var.project_name}_server"
   }
 }
 
@@ -50,13 +42,13 @@ resource "aws_instance" "clients" {
   subnet_id              = element(var.subnet_ids, count.index % length(var.subnet_ids))
   vpc_security_group_ids = var.security_groups
   key_name               = var.key_name
-  iam_instance_profile   = var.iam_instance_profile
+  iam_instance_profile   = aws_iam_instance_profile.nomad_instance_profile.id
 
   associate_public_ip_address = false
 
   user_data = templatefile("${path.module}/nomad.sh", {
     nomad_conf = templatefile("${path.module}/nomad_client.hcl", {
-      role = "${local.cluster_name}_server"
+      role = "${var.project_name}_server"
     })
   })
   user_data_replace_on_change = true
@@ -72,7 +64,7 @@ resource "aws_instance" "clients" {
   }
 
   tags = {
-    Name       = "${local.cluster_name}_client_${count.index}"
-    Nomad_role = "${local.cluster_name}_client"
+    Name       = "${var.project_name}_client_${count.index}"
+    Nomad_role = "${var.project_name}_client"
   }
 }
