@@ -2,9 +2,7 @@
 terraform.tfstate
 terraform.tfstate.backup
 .terraform
+.terraform.tfstate.lock*
 
 # Generated SSH keys.
 keys/
-
-# Generated Ansible iventory files.
-ansible/nomad-bench-permanent-*_inventory.ini
