@@ -21,7 +21,7 @@ resource "aws_security_group_rule" "all_vpc_ingress" {
   to_port           = 0
 }
 
-resource "aws_security_group_rule" "user_ingress" {
+resource "aws_security_group_rule" "user_ingress_80" {
   security_group_id = aws_security_group.alb.id
   cidr_blocks       = ["${chomp(data.http.myip.response_body)}/32"]
   type              = "ingress"
