@@ -37,8 +37,9 @@ module "core_cluster" {
   source = "../../../modules/nomad-cluster"
 
   project_name         = "${var.project_name}-core"
-  server_instance_type = "t2.micro"
-  client_count         = 0
+  server_instance_type = "t3.micro"
+  client_count         = 1
+  client_instance_type = "t3.micro"
   ami                  = data.aws_ami.ubuntu.id
   subnet_ids           = module.network.private_subnet_ids
   key_name             = module.keys.key_name
@@ -48,9 +49,10 @@ module "core_cluster" {
 module "core_cluster_alb" {
   source = "../../../modules/nomad-alb"
 
-  project_name              = var.project_name
-  nomad_server_instance_ids = module.core_cluster.server_ids
-  subnet_ids                = module.network.public_subnet_ids
-  vpc_cidr_block            = module.network.vpc_cidr_block
-  vpc_id                    = module.network.vpc_id
+  project_name               = var.project_name
+  nomad_server_instance_ids  = module.core_cluster.server_ids
+  subnet_ids                 = module.network.public_subnet_ids
+  vpc_cidr_block             = module.network.vpc_cidr_block
+  vpc_id                     = module.network.vpc_id
+  nomad_traefik_instance_ids = module.core_cluster.client_ids
 }

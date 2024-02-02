@@ -16,6 +16,13 @@ Open SSH tunnel to Nomad:
 In order to provision the cluster, you can run the following Ansible command:
   cd ../../../../ansible && \
     ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_client.yaml
+
+If you are deploying Traefik and InfluxDB to this cluster, the following commands can be used to
+perform the initial job registrations. Once the allocations have been started, Traefik will be
+available on your ALB at port 8080, and InfluxDB at port 8086. If you need to customize any of
+the jobs via the available variables, please check the job specificaitons.
+  nomad run -address=http://${module.core_cluster_alb.alb_dns_name}:80 ../../../../jobs/traefik.nomad.hcl
+  nomad run -address=http://${module.core_cluster_alb.alb_dns_name}:80 ../../../../jobs/influxdb.nomad.hcl
 EOM
 }
 
