@@ -8,10 +8,6 @@ resource "aws_security_group" "alb" {
   }
 }
 
-data "http" "myip" {
-  url = "http://ipv4.icanhazip.com"
-}
-
 resource "aws_security_group_rule" "all_vpc_ingress" {
   security_group_id = aws_security_group.alb.id
   cidr_blocks       = [var.vpc_cidr_block]
@@ -23,7 +19,7 @@ resource "aws_security_group_rule" "all_vpc_ingress" {
 
 resource "aws_security_group_rule" "user_ingress" {
   security_group_id = aws_security_group.alb.id
-  cidr_blocks       = ["${chomp(data.http.myip.response_body)}/32"]
+  cidr_blocks       = var.user_ingress_ips
   type              = "ingress"
   protocol          = "tcp"
   from_port         = 80

@@ -9,3 +9,8 @@ variable "vpc_cidr_block" {
   type        = string
   default     = "10.0.0.0/16"
 }
+
+variable "user_ingress_ips" {
+  description = "IP addresses which should be allowed access to Nomad infra."
+  type        = list(string)
+}

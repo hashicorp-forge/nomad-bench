@@ -23,3 +23,8 @@ variable "nomad_server_instance_ids" {
   description = "The EC2 instance IDs of the Nomad servers which will be added to the target group."
   type        = list(string)
 }
+
+variable "user_ingress_ips" {
+  description = "IP addresses which should be allowed access to exposed ALB endpoints."
+  type        = list(string)
+}

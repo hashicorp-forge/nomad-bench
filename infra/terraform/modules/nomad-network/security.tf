@@ -1,7 +1,3 @@
-data "http" "myip" {
-  url = "http://ipv4.icanhazip.com"
-}
-
 resource "aws_security_group" "nomad" {
   name   = "${var.project_name}-nomad"
   vpc_id = aws_vpc.vpc.id
@@ -24,14 +20,14 @@ resource "aws_security_group" "nomad" {
     from_port   = 4646
     to_port     = 4646
     protocol    = "tcp"
-    cidr_blocks = ["${chomp(data.http.myip.response_body)}/32"]
+    cidr_blocks = var.user_ingress_ips
   }
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${chomp(data.http.myip.response_body)}/32"]
+    cidr_blocks = var.user_ingress_ips
   }
 
   egress {
