@@ -10,7 +10,7 @@ variable "server_addr" {
 }
 
 locals {
-  server_addr_flags = "${ join("\n", [for s in var.server_addr : format("-server-addr=%s", s)] ) }"
+  server_addr_flags = [for s in var.server_addr : format("-server-addr=%s", s)]
 }
 
 job "nomad-nodesim" {
@@ -31,12 +31,14 @@ job "nomad-nodesim" {
         privileged = true
         image      = "jrasell/nomad-nodesim:latest"
         command    = "nomad-nodesim"
-        args       = [
+        args = concat(
           local.server_addr_flags,
-          "-node-num=100",
-          "-work-dir=${NOMAD_TASK_DIR}",
-          "-config=${NOMAD_TASK_DIR}/config.hcl",
-        ]
+          [
+            "-node-num=100",
+            "-work-dir=${NOMAD_TASK_DIR}",
+            "-config=${NOMAD_TASK_DIR}/config.hcl",
+          ],
+        )
       }
 
       template {
