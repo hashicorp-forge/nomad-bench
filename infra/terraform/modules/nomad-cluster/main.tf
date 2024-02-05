@@ -68,3 +68,56 @@ resource "aws_instance" "clients" {
     Nomad_role = "${var.project_name}_client"
   }
 }
+
+locals {
+  nomad_nodes = concat(aws_instance.servers.*.private_ip, aws_instance.clients.*.private_ip)
+}
+
+resource "null_resource" "tls_ca" {
+  depends_on = [aws_instance.servers, aws_instance.clients]
+
+  provisioner "local-exec" {
+    command = "./provision-tls.sh"
+  }
+
+  connection {
+    type                = "ssh"
+    user                = "ubuntu"
+    host                = local.nomad_nodes
+    private_key         = var.key_name
+    bastion_host        = var.bastion_host
+    bastion_private_key = var.bastion_host_key
+  }
+
+  provisioner "file" {
+    source      = ".tls/nomad-agent-ca.pem"
+    destination = "/etc/nomad.d/nomad-agent-ca.pem"
+  }
+
+  provisioner "file" {
+    source      = ".tls/global-server-nomad.pem"
+    destination = "/etc/nomad.d/global-server-nomad.pem"
+  }
+
+  provisioner "file" {
+    source      = ".tls/global-server-nomad-key.pem"
+    destination = "/etc/nomad.d/global-server-nomad-key.pem"
+  }
+
+  provisioner "file" {
+    source      = "tls.hcl"
+    destination = "/etc/nomad.d/tls.hcl"
+  }
+
+  provisioner "remote-exec" {
+    inline = ["sudo systemctl restart nomad"]
+  }
+}
+
+resource "null_resource" "cleanup" {
+  provisioner "local-exec" {
+    when    = destroy
+    command = "rm -rf ./tls"
+  }
+}
+

@@ -59,3 +59,15 @@ variable "client_iops" {
   type        = string
   default     = "3600"
 }
+
+variable "bastion_host" {
+  description = "The public IP of the bastion host"
+  type        = string
+  default     = ""
+}
+
+variable "bastion_host_key" {
+  description = "The SSH key of the bastion host"
+  type        = string
+  default     = ""
+}

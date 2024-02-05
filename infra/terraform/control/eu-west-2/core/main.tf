@@ -45,6 +45,8 @@ module "core_cluster" {
   subnet_ids           = module.network.private_subnet_ids
   key_name             = module.keys.key_name
   security_groups      = [module.network.nomad_security_group_id]
+  bastion_host         = module.bastion.public_ip
+  bastion_host_key     = "${abspath(path.module)}/${module.keys.private_key_filepath}"
 }
 
 module "core_cluster_alb" {
