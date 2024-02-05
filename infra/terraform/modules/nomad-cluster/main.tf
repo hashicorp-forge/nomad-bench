@@ -70,15 +70,25 @@ resource "aws_instance" "clients" {
 }
 
 locals {
-  nomad_nodes = concat(aws_instance.servers.*.private_ip, aws_instance.clients.*.private_ip)
+  nomad_nodes       = concat(aws_instance.servers.*.private_ip, aws_instance.clients.*.private_ip)
+  server_ips_string = [for i in aws_instance.servers.*.private_ip : i]
+  client_ips_string = [for i in aws_instance.clients.*.private_ip : i]
 }
 
-resource "null_resource" "tls_ca" {
-  depends_on = [aws_instance.servers, aws_instance.clients]
+resource "null_resource" "provision_tls_certs" {
 
   provisioner "local-exec" {
-    command = "./provision-tls.sh"
+    command = "${abspath(path.module)}/provision-tls.sh ${local.server_ips_string} ${local.client_ips_string}"
   }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "rm -rf ${abspath(path.module)}./tls"
+  }
+}
+
+resource "null_resource" "configure_nomad_tls" {
+  depends_on = [aws_instance.servers, aws_instance.clients, null_resource.provision_tls_certs]
 
   connection {
     type                = "ssh"
@@ -90,22 +100,22 @@ resource "null_resource" "tls_ca" {
   }
 
   provisioner "file" {
-    source      = ".tls/nomad-agent-ca.pem"
+    source      = "${abspath(path.module)}/.tls/nomad-agent-ca.pem"
     destination = "/etc/nomad.d/nomad-agent-ca.pem"
   }
 
   provisioner "file" {
-    source      = ".tls/global-server-nomad.pem"
+    source      = "${abspath(path.module)}/.tls/global-server-nomad.pem"
     destination = "/etc/nomad.d/global-server-nomad.pem"
   }
 
   provisioner "file" {
-    source      = ".tls/global-server-nomad-key.pem"
+    source      = "${abspath(path.module)}/.tls/global-server-nomad-key.pem"
     destination = "/etc/nomad.d/global-server-nomad-key.pem"
   }
 
   provisioner "file" {
-    source      = "tls.hcl"
+    source      = "${abspath(path.module)}/tls.hcl"
     destination = "/etc/nomad.d/tls.hcl"
   }
 
@@ -113,11 +123,3 @@ resource "null_resource" "tls_ca" {
     inline = ["sudo systemctl restart nomad"]
   }
 }
-
-resource "null_resource" "cleanup" {
-  provisioner "local-exec" {
-    when    = destroy
-    command = "rm -rf ./tls"
-  }
-}
-

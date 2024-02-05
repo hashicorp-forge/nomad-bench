@@ -20,7 +20,7 @@ module "network" {
   source = "../../../modules/nomad-network"
 
   project_name     = var.project_name
-  user_ingress_ips = [var.jrasell_ip]
+  user_ingress_ips = [var.jrasell_ip, var.pkazmierczak_ip]
 }
 
 module "bastion" {
