@@ -14,8 +14,8 @@ resource "aws_lb" "alb" {
 
 resource "aws_lb_listener" "nomad_listener" {
   load_balancer_arn = aws_lb.alb.arn
-  port              = "80"
-  protocol          = "HTTP"
+  port              = "443"
+  protocol          = "HTTPS"
 
   default_action {
     type             = "forward"
@@ -31,7 +31,7 @@ resource "aws_lb_target_group" "nomad" {
   name     = var.project_name
   vpc_id   = var.vpc_id
   port     = 4646
-  protocol = "HTTP"
+  protocol = "HTTPS"
 
   health_check {
     path = "/v1/jobs"
