@@ -34,6 +34,12 @@ job "influxdb" {
       }
     }
 
+    volume "influxdb" {
+      type      = "host"
+      read_only = false
+      source    = "influxdb"
+    }
+
     service {
       name     = "influxdb"
       port     = "influxdb"
@@ -62,6 +68,12 @@ job "influxdb" {
         args  = [
           "--http-bind-address=0.0.0.0:8086",
         ]
+      }
+
+      volume_mount {
+        volume      = "influxdb"
+        destination = "/var/lib/influxdb2"
+        read_only   = false
       }
 
       env {
