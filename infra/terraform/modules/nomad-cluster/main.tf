@@ -9,6 +9,14 @@ resource "aws_instance" "servers" {
   iam_instance_profile        = aws_iam_instance_profile.nomad_instance_profile.id
   associate_public_ip_address = false
 
+  user_data = templatefile("${path.module}/nomad.sh", {
+    nomad_conf = templatefile("${path.module}/nomad_server.hcl", {
+      role   = "${var.project_name}_server"
+      expect = var.server_count
+    })
+  })
+  user_data_replace_on_change = true
+
   root_block_device {
     volume_size = 100
     volume_type = "gp3"
@@ -35,6 +43,13 @@ resource "aws_instance" "clients" {
   key_name                    = var.key_name
   iam_instance_profile        = aws_iam_instance_profile.nomad_instance_profile.id
   associate_public_ip_address = false
+
+  user_data = templatefile("${path.module}/nomad.sh", {
+    nomad_conf = templatefile("${path.module}/nomad_client.hcl", {
+      role = "${var.project_name}_server"
+    })
+  })
+  user_data_replace_on_change = true
 
   root_block_device {
     volume_size = 100
@@ -108,34 +123,15 @@ resource "null_resource" "configure_nomad_tls" {
     source      = "${abspath(path.module)}/tls.hcl"
     destination = "/home/ubuntu/tls.hcl"
   }
-}
 
-resource "null_resource" "provision_servers" {
-  for_each = {
-    for i, server in aws_instance.servers : i => server
-  }
-
-  connection {
-    type         = "ssh"
-    user         = "ubuntu"
-    host         = each.value.private_ip
-    private_key  = file(var.private_key_path)
-    bastion_host = var.bastion_host
-  }
-
-  provisioner "file" {
-    content = templatefile("${path.module}/nomad.sh", {
-      nomad_conf = templatefile("${path.module}/nomad_server.hcl", {
-        role   = "${var.project_name}_server"
-        expect = var.server_count
-      })
-    })
-    destination = "/home/ubuntu/nomad.sh"
+  provisioner "remote-exec" {
+    inline = [
+      "until [ -f /usr/bin/nomad ]; do sleep 10; done",
+    ]
   }
 
   provisioner "remote-exec" {
     inline = [
-      "sudo bash /home/ubuntu/nomad.sh",
       "sudo mv /home/ubuntu/nomad-agent-ca.pem /etc/nomad.d/nomad-agent-ca.pem",
       "sudo mv /home/ubuntu/global-server-nomad.pem /etc/nomad.d/global-server-nomad.pem",
       "sudo mv /home/ubuntu/global-server-nomad-key.pem /etc/nomad.d/global-server-nomad-key.pem",
@@ -145,36 +141,3 @@ resource "null_resource" "provision_servers" {
   }
 }
 
-resource "null_resource" "provision_clients" {
-  for_each = {
-    for i, client in aws_instance.clients : i => client
-  }
-
-  connection {
-    type         = "ssh"
-    user         = "ubuntu"
-    host         = each.value.private_ip
-    private_key  = file(var.private_key_path)
-    bastion_host = var.bastion_host
-  }
-
-  provisioner "file" {
-    content = templatefile("${path.module}/nomad.sh", {
-      nomad_conf = templatefile("${path.module}/nomad_client.hcl", {
-        role = "${var.project_name}_server"
-      })
-    })
-    destination = "/home/ubuntu/nomad.sh"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo bash /home/ubuntu/nomad.sh",
-      "sudo mv /home/ubuntu/nomad-agent-ca.pem /etc/nomad.d/nomad-agent-ca.pem",
-      "sudo mv /home/ubuntu/global-server-nomad.pem /etc/nomad.d/global-server-nomad.pem",
-      "sudo mv /home/ubuntu/global-server-nomad-key.pem /etc/nomad.d/global-server-nomad-key.pem",
-      "sudo mv /home/ubuntu/tls.hcl /etc/nomad.d/tls.hcl",
-      "sudo systemctl restart nomad",
-    ]
-  }
-}
