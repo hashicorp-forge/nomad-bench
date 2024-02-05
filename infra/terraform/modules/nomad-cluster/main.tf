@@ -78,7 +78,7 @@ locals {
 resource "null_resource" "provision_tls_certs" {
 
   provisioner "local-exec" {
-    command = "cd ${abspath(path.module)} && ./provision-tls.sh ${local.server_ips_string} ${local.client_ips_string}"
+    command = "cd ${abspath(path.module)} && ./provision-tls.sh \"${local.server_ips_string}\" \"${local.client_ips_string}\""
   }
 
   provisioner "local-exec" {
@@ -88,7 +88,11 @@ resource "null_resource" "provision_tls_certs" {
 }
 
 resource "null_resource" "configure_nomad_tls" {
-  depends_on = [aws_instance.servers, aws_instance.clients, null_resource.provision_tls_certs]
+  depends_on = [
+    aws_instance.servers,
+    aws_instance.clients,
+    null_resource.provision_tls_certs,
+  ]
 
   for_each = {
     for i, node in local.nomad_nodes : i => node
@@ -120,6 +124,12 @@ resource "null_resource" "configure_nomad_tls" {
   provisioner "file" {
     source      = "${abspath(path.module)}/tls.hcl"
     destination = "/home/ubuntu/tls.hcl"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "until [ -f /usr/bin/nomad ]; do sleep 10; done",
+    ]
   }
 
   provisioner "remote-exec" {

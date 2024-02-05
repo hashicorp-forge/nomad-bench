@@ -13,4 +13,3 @@ EOF
 
 systemctl daemon-reload
 systemctl enable nomad
-systemctl restart nomad
