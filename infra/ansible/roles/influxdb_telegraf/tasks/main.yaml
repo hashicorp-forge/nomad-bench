@@ -1,0 +1,52 @@
+- name: "create_config_dir"
+  become: true
+  ansible.builtin.file:
+    path: "{{ influxdb_telegraf_config_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: "create_base_config_file"
+  become: true
+  ansible.builtin.template:
+    src: "base.conf.j2"
+    dest: "{{ influxdb_telegraf_config_dir }}/base.conf"
+    owner: "{{ influxdb_telegraf_user }}"
+    group: "{{ influxdb_telegraf_group }}"
+    mode: "0655"
+  notify:
+    - "restart_influxdb_telegraf"
+
+- name: "download_and_unarchive_influxdb_telegraf"
+  become: true
+  ansible.builtin.unarchive:
+    src: "{{ influxdb_telegraf_url }}"
+    dest: "/tmp"
+    mode: "0755"
+    remote_src: true
+
+- name: "move_influxdb_telegraf_binary"
+  become: true
+  copy:
+    src: "/tmp/{{ influxdb_telegraf_tar_file }}/usr/bin/telegraf"
+    dest: "{{ influxdb_telegraf_install_dir }}/"
+    mode: 0755
+    remote_src: true
+  notify:
+    - "restart_influxdb_telegraf"
+
+- name: "remove_influxdb_telegraf_archive"
+  become: true
+  ansible.builtin.file:
+    path: "/tmp/{{ influxdb_telegraf_tar_file }}"
+    state: "absent"
+
+- name: "create_influxdb_telegraf_service_file"
+  become: true
+  ansible.builtin.template:
+    src: "influxdb_telegraf.service.j2"
+    dest: "/etc/systemd/system/influxdb_telegraf.service"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  notify:
+    - "reload_systemd"
