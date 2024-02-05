@@ -20,3 +20,10 @@ module "jrasell_b20b731" {
   server_instance_type = "m5.large"
   client_count         = 0
 }
+
+module "jrasell_b20b731_bootstrap" {
+  source = "../../../modules/test-bench-bootstrap"
+
+  project_name             = var.project_name
+  influxdb_bucket_suffixes = ["run-1", "run-2", "run-3"]
+}
