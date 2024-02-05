@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eux -o
+set -ex -o
 
 read -ra server_ips <<< "$1"
 read -ra client_ips <<< "$2"
