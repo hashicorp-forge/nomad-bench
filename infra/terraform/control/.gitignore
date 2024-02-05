@@ -6,4 +6,3 @@ terraform.tfstate.backup
 
 # Generated SSH keys.
 keys/
-.tls/

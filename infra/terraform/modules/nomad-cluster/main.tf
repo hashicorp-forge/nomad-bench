@@ -70,56 +70,65 @@ resource "aws_instance" "clients" {
 }
 
 locals {
-  nomad_nodes       = concat(aws_instance.servers.*.private_ip, aws_instance.clients.*.private_ip)
-  server_ips_string = [for i in aws_instance.servers.*.private_ip : i]
-  client_ips_string = [for i in aws_instance.clients.*.private_ip : i]
+  nomad_nodes       = concat(aws_instance.servers, aws_instance.clients)
+  server_ips_string = join(" ", aws_instance.servers.*.private_ip)
+  client_ips_string = join(" ", aws_instance.clients.*.private_ip)
 }
 
 resource "null_resource" "provision_tls_certs" {
 
   provisioner "local-exec" {
-    command = "${abspath(path.module)}/provision-tls.sh ${local.server_ips_string} ${local.client_ips_string}"
+    command = "cd ${abspath(path.module)} && ./provision-tls.sh ${local.server_ips_string} ${local.client_ips_string}"
   }
 
   provisioner "local-exec" {
     when    = destroy
-    command = "rm -rf ${abspath(path.module)}./tls"
+    command = "rm -rf ${abspath(path.module)}/.tls"
   }
 }
 
 resource "null_resource" "configure_nomad_tls" {
   depends_on = [aws_instance.servers, aws_instance.clients, null_resource.provision_tls_certs]
 
+  for_each = {
+    for i, node in local.nomad_nodes : i => node
+  }
+
   connection {
-    type                = "ssh"
-    user                = "ubuntu"
-    host                = local.nomad_nodes
-    private_key         = var.key_name
-    bastion_host        = var.bastion_host
-    bastion_private_key = var.bastion_host_key
+    type         = "ssh"
+    user         = "ubuntu"
+    host         = each.value.private_ip
+    private_key  = file(var.private_key_path)
+    bastion_host = var.bastion_host
   }
 
   provisioner "file" {
     source      = "${abspath(path.module)}/.tls/nomad-agent-ca.pem"
-    destination = "/etc/nomad.d/nomad-agent-ca.pem"
+    destination = "/home/ubuntu/nomad-agent-ca.pem"
   }
 
   provisioner "file" {
     source      = "${abspath(path.module)}/.tls/global-server-nomad.pem"
-    destination = "/etc/nomad.d/global-server-nomad.pem"
+    destination = "/home/ubuntu/global-server-nomad.pem"
   }
 
   provisioner "file" {
     source      = "${abspath(path.module)}/.tls/global-server-nomad-key.pem"
-    destination = "/etc/nomad.d/global-server-nomad-key.pem"
+    destination = "/home/ubuntu/global-server-nomad-key.pem"
   }
 
   provisioner "file" {
     source      = "${abspath(path.module)}/tls.hcl"
-    destination = "/etc/nomad.d/tls.hcl"
+    destination = "/home/ubuntu/tls.hcl"
   }
 
   provisioner "remote-exec" {
-    inline = ["sudo systemctl restart nomad"]
+    inline = [
+      "sudo mv /home/ubuntu/nomad-agent-ca.pem /etc/nomad.d/nomad-agent-ca.pem",
+      "sudo mv /home/ubuntu/global-server-nomad.pem /etc/nomad.d/global-server-nomad.pem",
+      "sudo mv /home/ubuntu/global-server-nomad-key.pem /etc/nomad.d/global-server-nomad-key.pem",
+      "sudo mv /home/ubuntu/tls.hcl /etc/nomad.d/tls.hcl",
+      "sudo systemctl restart nomad",
+    ]
   }
 }

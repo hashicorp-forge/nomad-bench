@@ -66,8 +66,8 @@ variable "bastion_host" {
   default     = ""
 }
 
-variable "bastion_host_key" {
-  description = "The SSH key of the bastion host"
+variable "private_key_path" {
+  description = "The path to the private key used to connect to the bastion host"
   type        = string
   default     = ""
 }
