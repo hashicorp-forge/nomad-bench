@@ -19,7 +19,8 @@ data "aws_ami" "ubuntu" {
 module "network" {
   source = "../../../modules/nomad-network"
 
-  project_name = var.project_name
+  project_name     = var.project_name
+  user_ingress_ips = [var.jrasell_ip]
 }
 
 module "bastion" {
@@ -55,4 +56,5 @@ module "core_cluster_alb" {
   vpc_cidr_block             = module.network.vpc_cidr_block
   vpc_id                     = module.network.vpc_id
   nomad_traefik_instance_ids = module.core_cluster.client_ids
+  user_ingress_ips           = [var.jrasell_ip]
 }

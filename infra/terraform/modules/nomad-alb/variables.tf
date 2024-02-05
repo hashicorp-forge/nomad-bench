@@ -24,6 +24,11 @@ variable "nomad_server_instance_ids" {
   type        = list(string)
 }
 
+variable "user_ingress_ips" {
+  description = "IP addresses which should be allowed access to exposed ALB endpoints."
+  type        = list(string)
+}
+
 variable "nomad_traefik_instance_ids" {
   description = "Nomad client EC2 instance IDs running a Traefik instance."
   type        = list(string)
