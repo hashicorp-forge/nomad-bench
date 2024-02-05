@@ -8,16 +8,6 @@ data "aws_ami" "ubuntu" {
   owners      = ["099720109477"] # Canonical
 }
 
-module "jrasell_b20b731_alb" {
-  source = "../../../modules/nomad-alb"
-
-  project_name              = var.project_name
-  nomad_server_instance_ids = module.jrasell_b20b731.server_ids
-  subnet_ids                = var.public_subnet_ids
-  vpc_cidr_block            = var.vpc_cidr_block
-  vpc_id                    = var.vpc_id
-}
-
 module "jrasell_b20b731" {
   source = "../../../modules/nomad-cluster"
 
@@ -28,6 +18,5 @@ module "jrasell_b20b731" {
   security_groups = [var.nomad_security_group_id]
 
   server_instance_type = "m5.large"
-  client_instance_type = "m5.large"
-  client_count         = 5
+  client_count         = 0
 }

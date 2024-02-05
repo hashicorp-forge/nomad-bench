@@ -1,20 +1,3 @@
-output "message" {
-  value = <<-EOM
-Your Test Cluster has been provisioned!
-
-Load balancer address: http://${module.jrasell_b20b731_alb.alb_dns_name}
-
-In order to provision the cluster, you can run the following Ansible command:
-  cd ../../../../ansible && \
-    ansible-playbook -i ./${var.project_name}_inventory.ini ./playbook_client.yaml
-
-To run the Nomad Nodesim job, you can run the following command:
-  nomad run -address=http://${module.jrasell_b20b731_alb.alb_dns_name}:80 \
-    -var="server_addr=[\"<PRIVATE IP>:4647\"]" \
-    ../../../../jobs/nomad-nodesim.nomad.hcl
-EOM
-}
-
 resource "local_file" "ansible_inventory" {
   content  = <<EOT
 [bastion]
