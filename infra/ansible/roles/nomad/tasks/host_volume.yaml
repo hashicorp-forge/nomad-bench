@@ -11,7 +11,7 @@
 - name: "create_host_volume_config"
   become: true
   ansible.builtin.template:
-    src: host_volume.hcl.j2
+    src: host-volume.hcl.j2
     dest: "{{ nomad_config_dir }}/host_volume.hcl"
     owner: root
     group: root

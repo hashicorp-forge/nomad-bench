@@ -1,5 +1,8 @@
 - hosts: client
   roles:
+    - role: "geerlingguy.docker"
+      become: true
+
     - role: cni
 
     - role: nomad
