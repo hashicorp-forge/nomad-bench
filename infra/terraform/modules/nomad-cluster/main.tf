@@ -74,6 +74,9 @@ locals {
 }
 
 resource "null_resource" "provision_tls_certs" {
+  triggers = {
+    project_name = var.project_name // terraform destroy-time provisioners can't access vars
+  }
 
   provisioner "local-exec" {
     command = "cd ${abspath(path.module)} && ./provision-tls.sh \"${var.project_name}\" \"${local.server_ips_string}\" \"${local.client_ips_string}\""
@@ -81,7 +84,7 @@ resource "null_resource" "provision_tls_certs" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = "rm -rf ${abspath(path.module)}/.tls"
+    command = "rm -rf ${abspath(path.module)}/.tls-${self.triggers.project_name}"
   }
 }
 
