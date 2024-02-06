@@ -15,7 +15,7 @@ variable "vpc_cidr_block" {
 }
 
 variable "subnet_ids" {
-  description = "The VPC subnet IDs where the ALB will be placed."
+  description = "The VPC subnet IDs where the LB will be placed."
   type        = list(string)
 }
 
@@ -25,7 +25,7 @@ variable "nomad_server_instance_ids" {
 }
 
 variable "user_ingress_ips" {
-  description = "IP addresses which should be allowed access to exposed ALB endpoints."
+  description = "IP addresses which should be allowed access to exposed LB endpoints."
   type        = list(string)
 }
 

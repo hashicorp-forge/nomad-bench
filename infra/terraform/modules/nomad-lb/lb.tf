@@ -1,8 +1,8 @@
-resource "aws_lb" "alb" {
+resource "aws_lb" "lb" {
   name               = var.project_name
   internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
+  load_balancer_type = "network"
+  security_groups    = [aws_security_group.lb.id]
   subnets            = var.subnet_ids
 
   enable_deletion_protection = false
@@ -13,9 +13,9 @@ resource "aws_lb" "alb" {
 }
 
 resource "aws_lb_listener" "nomad_listener" {
-  load_balancer_arn = aws_lb.alb.arn
+  load_balancer_arn = aws_lb.lb.arn
   port              = "80"
-  protocol          = "HTTP"
+  protocol          = "TCP"
 
   default_action {
     type             = "forward"
@@ -31,7 +31,7 @@ resource "aws_lb_target_group" "nomad" {
   name     = var.project_name
   vpc_id   = var.vpc_id
   port     = 4646
-  protocol = "HTTP"
+  protocol = "TCP"
 
   health_check {
     path = "/v1/jobs"

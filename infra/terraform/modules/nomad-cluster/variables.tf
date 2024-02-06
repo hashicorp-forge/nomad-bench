@@ -59,3 +59,15 @@ variable "client_iops" {
   type        = string
   default     = "3600"
 }
+
+variable "bastion_host" {
+  description = "The public IP of the bastion host"
+  type        = string
+  default     = ""
+}
+
+variable "private_key_path" {
+  description = "The path to the private key used to connect to the bastion host"
+  type        = string
+  default     = ""
+}

@@ -1,13 +1,12 @@
 resource "aws_instance" "servers" {
   count = var.server_count
 
-  ami                    = var.ami
-  instance_type          = var.server_instance_type
-  subnet_id              = element(var.subnet_ids, count.index % length(var.subnet_ids))
-  vpc_security_group_ids = var.security_groups
-  key_name               = var.key_name
-  iam_instance_profile   = aws_iam_instance_profile.nomad_instance_profile.id
-
+  ami                         = var.ami
+  instance_type               = var.server_instance_type
+  subnet_id                   = element(var.subnet_ids, count.index % length(var.subnet_ids))
+  vpc_security_group_ids      = var.security_groups
+  key_name                    = var.key_name
+  iam_instance_profile        = aws_iam_instance_profile.nomad_instance_profile.id
   associate_public_ip_address = false
 
   user_data = templatefile("${path.module}/nomad.sh", {
@@ -37,13 +36,12 @@ resource "aws_instance" "servers" {
 resource "aws_instance" "clients" {
   count = var.client_count
 
-  ami                    = var.ami
-  instance_type          = var.client_instance_type
-  subnet_id              = element(var.subnet_ids, count.index % length(var.subnet_ids))
-  vpc_security_group_ids = var.security_groups
-  key_name               = var.key_name
-  iam_instance_profile   = aws_iam_instance_profile.nomad_instance_profile.id
-
+  ami                         = var.ami
+  instance_type               = var.client_instance_type
+  subnet_id                   = element(var.subnet_ids, count.index % length(var.subnet_ids))
+  vpc_security_group_ids      = var.security_groups
+  key_name                    = var.key_name
+  iam_instance_profile        = aws_iam_instance_profile.nomad_instance_profile.id
   associate_public_ip_address = false
 
   user_data = templatefile("${path.module}/nomad.sh", {
@@ -68,3 +66,81 @@ resource "aws_instance" "clients" {
     Nomad_role = "${var.project_name}_client"
   }
 }
+
+locals {
+  nomad_nodes       = concat(aws_instance.servers, aws_instance.clients)
+  server_ips_string = join(" ", aws_instance.servers.*.private_ip)
+  client_ips_string = join(" ", aws_instance.clients.*.private_ip)
+}
+
+resource "null_resource" "provision_tls_certs" {
+  triggers = {
+    project_name = var.project_name // terraform destroy-time provisioners can't access vars
+  }
+
+  provisioner "local-exec" {
+    command = "cd ${abspath(path.module)} && ./provision-tls.sh \"${var.project_name}\" \"${local.server_ips_string}\" \"${local.client_ips_string}\""
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "rm -rf ${abspath(path.module)}/.tls-${self.triggers.project_name}"
+  }
+}
+
+resource "null_resource" "configure_nomad_tls" {
+  depends_on = [
+    aws_instance.servers,
+    aws_instance.clients,
+    null_resource.provision_tls_certs,
+  ]
+
+  for_each = {
+    for i, node in local.nomad_nodes : i => node
+  }
+
+  connection {
+    type         = "ssh"
+    user         = "ubuntu"
+    host         = each.value.private_ip
+    private_key  = file(var.private_key_path)
+    bastion_host = var.bastion_host
+  }
+
+  provisioner "file" {
+    source      = "${abspath(path.module)}/.tls-${var.project_name}/nomad-agent-ca.pem"
+    destination = "/home/ubuntu/nomad-agent-ca.pem"
+  }
+
+  provisioner "file" {
+    source      = "${abspath(path.module)}/.tls-${var.project_name}/global-server-nomad.pem"
+    destination = "/home/ubuntu/nomad-agent.pem"
+  }
+
+  provisioner "file" {
+    source      = "${abspath(path.module)}/.tls-${var.project_name}/global-server-nomad-key.pem"
+    destination = "/home/ubuntu/nomad-agent-key.pem"
+  }
+
+  provisioner "file" {
+    source      = "${abspath(path.module)}/tls.hcl"
+    destination = "/home/ubuntu/tls.hcl"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "until [ -f /usr/bin/nomad ]; do sleep 10; done",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mv /home/ubuntu/nomad-agent-ca.pem /etc/nomad.d/nomad-agent-ca.pem",
+      "sudo mv /home/ubuntu/nomad-agent.pem /etc/nomad.d/nomad-agent.pem",
+      "sudo mv /home/ubuntu/nomad-agent-key.pem /etc/nomad.d/nomad-agent-key.pem",
+      "sudo mv /home/ubuntu/tls.hcl /etc/nomad.d/tls.hcl",
+      "sudo systemctl restart nomad",
+    ]
+  }
+}
+
