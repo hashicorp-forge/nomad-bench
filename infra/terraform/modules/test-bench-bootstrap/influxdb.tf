@@ -12,8 +12,8 @@ data "influxdb-v2_organization" "influx_org" {
 }
 
 resource "influxdb-v2_bucket" "nomad_bench" {
-  count       = length(var.influxdb_bucket_suffixes)
-  name        = "${var.project_name}-${element(var.influxdb_bucket_suffixes,count.index)}"
+  for_each       = toset(var.influxdb_bucket_suffixes)
+  name        = "${var.project_name}-${each.value}"
   description = "bucket created by Terraform for ${var.project_name}"
   org_id      = data.influxdb-v2_organization.influx_org.id
 
