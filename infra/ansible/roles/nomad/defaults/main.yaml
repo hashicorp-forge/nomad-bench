@@ -1,0 +1,5 @@
+nomad_user: root
+nomad_group: root
+nomad_config_dir: "/etc/nomad.d/"
+
+nomad_host_volumes: [ ]

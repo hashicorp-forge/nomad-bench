@@ -1,0 +1,21 @@
+- name: "create_host_volume"
+  become: true
+  ansible.builtin.file:
+    path: "{{ item['path'] }}"
+    owner: "{{ item['owner'] | default(nomad_user) }}"
+    group: "{{ item['group'] | default(nomad_group) }}"
+    state: "directory"
+    mode: "{{ item['mode'] | default('0755') }}"
+  with_items: "{{ nomad_host_volumes }}"
+
+- name: "create_host_volume_config"
+  become: true
+  ansible.builtin.template:
+    src: host_volume.hcl.j2
+    dest: "{{ nomad_config_dir }}/host_volume.hcl"
+    owner: root
+    group: root
+    mode: "0644"
+  when: nomad_host_volumes | length > 0
+  notify:
+    - "restart_nomad"
