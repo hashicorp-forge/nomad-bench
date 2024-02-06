@@ -37,8 +37,6 @@ module "bastion" {
 module "core_cluster" {
   source = "../../../modules/nomad-cluster"
 
-  depends_on = [module.network]
-
   project_name         = "${var.project_name}-core"
   server_instance_type = "t3.micro"
   client_count         = 1
@@ -48,7 +46,7 @@ module "core_cluster" {
   key_name             = module.keys.key_name
   security_groups      = [module.network.nomad_security_group_id]
   bastion_host         = module.bastion.public_ip
-  private_key_path     = "${abspath(path.module)}/${module.keys.private_key_filepath}"
+  private_key_path     = "${path.module}/${module.keys.private_key_filepath}"
 }
 
 module "core_cluster_lb" {

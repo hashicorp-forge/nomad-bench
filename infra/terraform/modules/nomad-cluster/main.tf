@@ -76,7 +76,7 @@ locals {
 resource "null_resource" "provision_tls_certs" {
 
   provisioner "local-exec" {
-    command = "cd ${abspath(path.module)} && ./provision-tls.sh \"${local.server_ips_string}\" \"${local.client_ips_string}\""
+    command = "cd ${abspath(path.module)} && ./provision-tls.sh \"${var.project_name}\" \"${local.server_ips_string}\" \"${local.client_ips_string}\""
   }
 
   provisioner "local-exec" {
@@ -105,18 +105,18 @@ resource "null_resource" "configure_nomad_tls" {
   }
 
   provisioner "file" {
-    source      = "${abspath(path.module)}/.tls/nomad-agent-ca.pem"
+    source      = "${abspath(path.module)}/.tls-${var.project_name}/nomad-agent-ca.pem"
     destination = "/home/ubuntu/nomad-agent-ca.pem"
   }
 
   provisioner "file" {
-    source      = "${abspath(path.module)}/.tls/global-server-nomad.pem"
-    destination = "/home/ubuntu/global-server-nomad.pem"
+    source      = "${abspath(path.module)}/.tls-${var.project_name}/global-server-nomad.pem"
+    destination = "/home/ubuntu/nomad-agent.pem"
   }
 
   provisioner "file" {
-    source      = "${abspath(path.module)}/.tls/global-server-nomad-key.pem"
-    destination = "/home/ubuntu/global-server-nomad-key.pem"
+    source      = "${abspath(path.module)}/.tls-${var.project_name}/global-server-nomad-key.pem"
+    destination = "/home/ubuntu/nomad-agent-key.pem"
   }
 
   provisioner "file" {
@@ -133,8 +133,8 @@ resource "null_resource" "configure_nomad_tls" {
   provisioner "remote-exec" {
     inline = [
       "sudo mv /home/ubuntu/nomad-agent-ca.pem /etc/nomad.d/nomad-agent-ca.pem",
-      "sudo mv /home/ubuntu/global-server-nomad.pem /etc/nomad.d/global-server-nomad.pem",
-      "sudo mv /home/ubuntu/global-server-nomad-key.pem /etc/nomad.d/global-server-nomad-key.pem",
+      "sudo mv /home/ubuntu/nomad-agent.pem /etc/nomad.d/nomad-agent.pem",
+      "sudo mv /home/ubuntu/nomad-agent-key.pem /etc/nomad.d/nomad-agent-key.pem",
       "sudo mv /home/ubuntu/tls.hcl /etc/nomad.d/tls.hcl",
       "sudo systemctl restart nomad",
     ]

@@ -2,14 +2,17 @@
 
 set -ex -o
 
-read -ra server_ips <<< "$1"
-read -ra client_ips <<< "$2"
+project=$1
+read -ra server_ips <<< "$2"
+read -ra client_ips <<< "$3"
 
-if [ ! -d "./.tls" ]; then
-mkdir ./.tls
+directory="./.tls-${project}"
+
+if [ ! -d $directory ]; then
+mkdir $directory
 fi
 
-pushd ./.tls
+pushd $directory
 
 nomad tls ca create
 
