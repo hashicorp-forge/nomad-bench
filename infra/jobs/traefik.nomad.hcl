@@ -30,7 +30,7 @@ job "traefik" {
       driver = "docker"
 
       config {
-        image   = "traefik:v3.0"
+        image = "traefik:v3.0"
         volumes = [
           "local/traefik.yml:/etc/traefik/traefik.yml",
         ]
@@ -58,7 +58,7 @@ providers:
     prefix: traefik
     stale: true
     endpoint:
-      address: http://{{ env "NOMAD_IP_api" }}:4646
+      address: https://{{ env "NOMAD_IP_api" }}:4646
 EOH
       }
 
