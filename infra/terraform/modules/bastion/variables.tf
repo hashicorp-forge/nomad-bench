@@ -1,7 +1,7 @@
 variable "project_name" {
   description = "The name that will be associated with all AWS resources."
   type        = string
-  default     = "nomad-benchmark"
+  default     = "nomad-bench"
 }
 
 variable "ami_id" {

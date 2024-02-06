@@ -1,7 +1,7 @@
 variable "project_name" {
   description = "Used to name various infrastructure components"
   type        = string
-  default     = "nomad-benchmark"
+  default     = "nomad-bench"
 }
 
 variable "subnet_ids" {
