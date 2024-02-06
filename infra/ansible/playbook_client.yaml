@@ -3,7 +3,8 @@
     - role: cni
 
     - role: nomad
-      nomad_host_volumes:
-        - name: influxdb
-          path: /opt/influxdb
-          read_only: false
+      vars:
+        nomad_host_volumes:
+          - name: influxdb
+            path: /opt/influxdb
+            read_only: false
