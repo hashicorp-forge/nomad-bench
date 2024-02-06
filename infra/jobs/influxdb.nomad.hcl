@@ -16,6 +16,12 @@ variable "influxdb_admin_password" {
   description = "The password to associate with the admin user."
 }
 
+variable "influxdb_admin_token" {
+  type        = string
+  default     = "ZuXY8FXZL435F7TXeiA_UUOnx4cA4pCqDfsbYyW9O9eysFeR_5SmcNS8ZKb35FtG50ul4WIxAz9RksGt6fb1og=="
+  description = "The initial admin API token to create."
+}
+
 job "influxdb" {
   type = "service"
 
@@ -59,11 +65,12 @@ job "influxdb" {
       }
 
       env {
-        DOCKER_INFLUXDB_INIT_MODE     = "setup"
-        DOCKER_INFLUXDB_INIT_USERNAME = "admin"
-        DOCKER_INFLUXDB_INIT_PASSWORD = var.influxdb_admin_password
-        DOCKER_INFLUXDB_INIT_ORG      = var.influxdb_org_name
-        DOCKER_INFLUXDB_INIT_BUCKET   = var.influxdb_bucket_name
+        DOCKER_INFLUXDB_INIT_MODE        = "setup"
+        DOCKER_INFLUXDB_INIT_USERNAME    = "admin"
+        DOCKER_INFLUXDB_INIT_PASSWORD    = var.influxdb_admin_password
+        DOCKER_INFLUXDB_INIT_ORG         = var.influxdb_org_name
+        DOCKER_INFLUXDB_INIT_BUCKET      = var.influxdb_bucket_name
+        DOCKER_INFLUXDB_INIT_ADMIN_TOKEN = var.influxdb_admin_token
       }
 
       resources {
