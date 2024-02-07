@@ -32,10 +32,6 @@ resource "aws_lb_target_group" "nomad" {
   vpc_id   = var.vpc_id
   port     = 4646
   protocol = "TCP"
-
-  health_check {
-    path = "/v1/jobs"
-  }
 }
 
 resource "aws_lb_target_group_attachment" "nomad" {

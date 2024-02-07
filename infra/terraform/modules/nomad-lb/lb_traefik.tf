@@ -20,10 +20,6 @@ resource "aws_lb_target_group" "traefik_api" {
   vpc_id   = var.vpc_id
   port     = 8080
   protocol = "TCP"
-
-  health_check {
-    path = "/ping"
-  }
 }
 
 resource "aws_lb_target_group_attachment" "traefik_api" {
@@ -55,10 +51,6 @@ resource "aws_lb_target_group" "traefik_influxdb" {
   vpc_id   = var.vpc_id
   port     = 8086
   protocol = "TCP"
-
-  health_check {
-    path = "/health"
-  }
 }
 
 resource "aws_lb_target_group_attachment" "traefik_influxdb" {
