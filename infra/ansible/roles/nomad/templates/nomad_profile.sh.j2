@@ -1,0 +1,8 @@
+{% if nomad_tls_enable %}
+export NOMAD_ADDR=https://127.0.0.1:4646
+export NOMAD_CACERT={{ nomad_config_dir }}/tls/ca.pem
+export NOMAD_CLIENT_CERT={{ nomad_config_dir }}/tls/cli.pem
+export NOMAD_CLIENT_KEY={{ nomad_config_dir }}/tls/cli-key.pem
+{% else %}
+export NOMAD_ADDR=http://127.0.0.1:4646
+{% endif %}

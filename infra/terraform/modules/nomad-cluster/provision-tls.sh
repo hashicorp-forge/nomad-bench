@@ -2,27 +2,26 @@
 
 set -ex -o
 
-project=$1
+DIR=$1
+
 read -ra server_ips <<< "$2"
 read -ra client_ips <<< "$3"
 
-directory="./.tls-${project}"
-
-if [ ! -d $directory ]; then
-mkdir $directory
+if [ ! -d "$DIR" ]; then
+  mkdir -p "$DIR"
 fi
 
-pushd $directory
+pushd "$DIR"
 
 nomad tls ca create
 
 nomad tls cert create \
--server \
-"${server_ips[@]/#/--additional-ipaddress=}"
+  -server \
+  "${server_ips[@]/#/--additional-ipaddress=}"
 
 nomad tls cert create \
--client \
-"${client_ips[@]/#/--additional-ipaddress=}"
+  -client \
+  "${client_ips[@]/#/--additional-ipaddress=}"
 
 nomad tls cert create -cli
 

@@ -1,3 +1,8 @@
 - name: "host_volume"
   ansible.builtin.include_tasks:
     file: host_volume.yaml
+
+- name: "tls_configuration"
+  ansible.builtin.include_tasks:
+    file: tls.yaml
+  when: nomad_tls_enable | bool
