@@ -1,8 +1,3 @@
-# locals {
-#   server_ips_string = join(" ", var.servers.*.private_ip)
-#   client_ips_string = join(" ", aws_instance.clients.*.private_ip)
-# }
-
 resource "null_resource" "provision_tls_certs" {
   triggers = {
     output_path = var.tls_output_path // terraform destroy-time provisioners can't access vars
