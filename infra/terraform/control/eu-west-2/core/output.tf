@@ -2,7 +2,7 @@ output "message" {
   value = <<-EOM
 Your Control Cluster has been provisioned!
 
-Load balancer address: https://${module.core_cluster_lb.lb_dns_name}:443
+Load balancer address: https://${module.core_cluster_lb.lb_dns_name}:80
 
 SSH into the bastion host:
   ssh -i ./keys/${var.project_name}.pem ubuntu@${module.bastion.public_ip}
