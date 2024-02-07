@@ -1,3 +1,28 @@
+- name: "stat_log_file"
+  stat: path="{{ nomad_log_file }}"
+  register: log_file
+
+- name: "create_log_file"
+  become: true
+  ansible.builtin.file:
+    state: touch
+    path: "{{ nomad_log_file }}"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0750"
+  when: not log_file.stat.exists
+
+- name: "create_base_config_file"
+  become: true
+  ansible.builtin.template:
+    src: "base.hcl.j2"
+    dest: "{{ nomad_config_dir }}/base.hcl"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0655"
+  notify:
+    - "restart_nomad"
+
 - name: "host_volume"
   ansible.builtin.include_tasks:
     file: host_volume.yaml
