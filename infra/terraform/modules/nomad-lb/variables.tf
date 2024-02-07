@@ -34,3 +34,19 @@ variable "nomad_traefik_instance_ids" {
   type        = list(string)
   default     = []
 }
+
+variable "ami" {
+  description = "AMI to use for the Nomad LB."
+  type        = string
+}
+
+variable "nomad_nginx_lb_instance_type" {
+  description = "The AWS instance type to use for the Nomad LB."
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "key_name" {
+  description = "The name of the SSH key to use for the Nomad LB."
+  type        = string
+}

@@ -45,17 +45,28 @@ module "core_cluster" {
   subnet_ids           = module.network.private_subnet_ids
   key_name             = module.keys.key_name
   security_groups      = [module.network.nomad_security_group_id]
-  tls_output_path      = "${path.cwd}/tls"
 }
 
 module "core_cluster_lb" {
   source = "../../../modules/nomad-lb"
 
-  project_name               = var.project_name
-  nomad_server_instance_ids  = module.core_cluster.server_ids
-  subnet_ids                 = module.network.public_subnet_ids
-  vpc_cidr_block             = module.network.vpc_cidr_block
-  vpc_id                     = module.network.vpc_id
-  nomad_traefik_instance_ids = module.core_cluster.client_ids
-  user_ingress_ips           = [var.jrasell_ip, var.pkazmierczak_ip]
+  project_name                 = var.project_name
+  nomad_server_instance_ids    = module.core_cluster.server_ids
+  subnet_ids                   = module.network.public_subnet_ids
+  vpc_cidr_block               = module.network.vpc_cidr_block
+  vpc_id                       = module.network.vpc_id
+  nomad_traefik_instance_ids   = module.core_cluster.client_ids
+  user_ingress_ips             = [var.jrasell_ip, var.pkazmierczak_ip]
+  ami                          = data.aws_ami.ubuntu.id
+  key_name                     = module.keys.key_name
+  nomad_nginx_lb_instance_type = "t3.micro"
+}
+
+module "core_cluster_tls" {
+  source = "../../../modules/nomad-tls"
+
+  tls_output_path = "${path.cwd}/tls"
+  lb_ip           = module.core_cluster_lb.lb_ip
+  client_ips      = join(" ", module.core_cluster.client_private_ips)
+  server_ips      = join(" ", module.core_cluster.server_private_ips)
 }

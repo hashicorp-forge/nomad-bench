@@ -59,8 +59,3 @@ variable "client_iops" {
   type        = string
   default     = "3600"
 }
-
-variable "tls_output_path" {
-  description = "The path in which to place generated TLS certificates."
-  type        = string
-}
