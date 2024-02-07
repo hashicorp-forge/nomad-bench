@@ -2,7 +2,7 @@ output "message" {
   value = <<-EOM
 Your Control Cluster has been provisioned!
 
-Load balancer address: http://${module.core_cluster_lb.lb_dns_name}
+Load balancer address: https://${module.core_cluster_lb.lb_dns_name}:80
 
 SSH into the bastion host:
   ssh -i ./keys/${var.project_name}.pem ubuntu@${module.bastion.public_ip}
@@ -15,7 +15,8 @@ Open SSH tunnel to Nomad:
 
 In order to provision the cluster, you can run the following Ansible command:
   cd ../../../../ansible && \
-    ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_client.yaml
+    ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_eu-west-2_core_server.yaml && \
+    ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_eu-west-2_core_client.yaml
 
 CA, Certs, and Keys for Nomad have been provisioned here:
   ${abspath(path.module)}/.tls-${var.project_name}
@@ -30,8 +31,8 @@ If you are deploying Traefik and InfluxDB to this cluster, the following command
 perform the initial job registrations. Once the allocations have been started, Traefik will be
 available on your LB at port 8080, and InfluxDB at port 8086. If you need to customize any of
 the jobs via the available variables, please check the job specificaitons.
-  nomad run -address=http://${module.core_cluster_lb.lb_dns_name}:80 ../../../../jobs/traefik.nomad.hcl
-  nomad run -address=http://${module.core_cluster_lb.lb_dns_name}:80 ../../../../jobs/influxdb.nomad.hcl
+  nomad run -address=https://${module.core_cluster_lb.lb_dns_name}:80 ../../../../jobs/traefik.nomad.hcl
+  nomad run -address=https://${module.core_cluster_lb.lb_dns_name}:80 ../../../../jobs/influxdb.nomad.hcl
 EOM
 }
 

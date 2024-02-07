@@ -60,14 +60,7 @@ variable "client_iops" {
   default     = "3600"
 }
 
-variable "bastion_host" {
-  description = "The public IP of the bastion host"
+variable "tls_output_path" {
+  description = "The path in which to place generated TLS certificates."
   type        = string
-  default     = ""
-}
-
-variable "private_key_path" {
-  description = "The path to the private key used to connect to the bastion host"
-  type        = string
-  default     = ""
 }

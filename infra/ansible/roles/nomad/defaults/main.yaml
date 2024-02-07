@@ -3,3 +3,12 @@ nomad_group: root
 nomad_config_dir: "/etc/nomad.d/"
 
 nomad_host_volumes: [ ]
+
+nomad_tls_enable: false
+nomad_tls_ca_cert: ""
+nomad_tls_cert: ""
+nomad_tls_cert_key: ""
+
+nomad_cli_profile_enabled: false
+nomad_cli_tls_cert: ""
+nomad_cli_tls_cert_key: ""
