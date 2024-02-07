@@ -58,7 +58,7 @@ providers:
     prefix: traefik
     stale: true
     endpoint:
-      address: http://{{ env "NOMAD_IP_api" }}:4646
+      address: https://{{ env "NOMAD_IP_api" }}:4646
 EOH
       }
 
