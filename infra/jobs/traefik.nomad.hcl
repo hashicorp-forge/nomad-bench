@@ -1,3 +1,8 @@
+variable "tls_ca_path" {
+  description = "The local path to the Nomad CA certificate."
+  type        = string
+}
+
 job "traefik" {
   type = "system"
 
@@ -37,6 +42,11 @@ job "traefik" {
       }
 
       template {
+        data        = file(var.tls_ca_path)
+        destination = "${NOMAD_TASK_DIR}/ca.pem"
+      }
+
+      template {
         destination = "${NOMAD_TASK_DIR}/traefik.yml"
         data        = <<-EOH
 api:
@@ -59,6 +69,11 @@ providers:
     stale: true
     endpoint:
       address: https://{{ env "NOMAD_IP_api" }}:4646
+      tls:
+        ca: {{ env "NOMAD_TASK_DIR" }}/ca.pem
+
+serversTransport:
+  insecureSkipVerify: true
 EOH
       }
 

@@ -31,7 +31,11 @@ If you are deploying Traefik and InfluxDB to this cluster, the following command
 perform the initial job registrations. Once the allocations have been started, Traefik will be
 available on your LB at port 8080, and InfluxDB at port 8086. If you need to customize any of
 the jobs via the available variables, please check the job specificaitons.
-  nomad run -address=https://${module.core_cluster_lb.lb_dns_name}:80 ../../../../jobs/traefik.nomad.hcl
+  nomad run \
+    -address=https://${module.core_cluster_lb.lb_dns_name}:80 \
+    -var='tls_ca_path=${module.core_cluster.ca_cert_path}' \
+    ../../../../jobs/traefik.nomad.hcl
+
   nomad run -address=https://${module.core_cluster_lb.lb_dns_name}:80 ../../../../jobs/influxdb.nomad.hcl
 EOM
 }
