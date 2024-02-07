@@ -58,5 +58,5 @@ module "core_cluster_lb" {
   vpc_cidr_block             = module.network.vpc_cidr_block
   vpc_id                     = module.network.vpc_id
   nomad_traefik_instance_ids = module.core_cluster.client_ids
-  user_ingress_ips           = [var.jrasell_ip]
+  user_ingress_ips           = [var.jrasell_ip, var.pkazmierczak_ip]
 }
