@@ -13,6 +13,8 @@ influxdb_telegraf_url: "https://dl.influxdata.com/telegraf/releases/telegraf-{{ 
 influxdb_telegraf_tar_file: "telegraf-{{ influxdb_telegraf_version }}"
 
 influxdb_telegraf_input_nomad_url: "http://127.0.0.1:4646"
+influxdb_telegraf_input_nomad_tls_ca: ""
+influxdb_telegraf_inout_nomad_log_file: "/var/log/nomad.log"
 influxdb_telegraf_output_urls: ["http://127.0.0.1:8086"]
 influxdb_telegraf_output_token: ""
 influxdb_telegraf_output_organization: ""
