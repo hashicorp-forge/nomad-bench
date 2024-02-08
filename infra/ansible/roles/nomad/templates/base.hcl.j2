@@ -1,0 +1,4 @@
+log_level            = "{{ nomad_log_level | upper }}"
+log_json             = {{ nomad_log_json | lower }}
+log_include_location = {{ nomad_log_include_location | lower }}
+log_file             = "{{ nomad_log_file }}"
