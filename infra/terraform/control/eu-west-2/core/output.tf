@@ -71,8 +71,14 @@ ansible_user= "ubuntu"
 ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
 
-[lb]
+[core_lb]
 ${module.core_cluster_lb.lb_ip}
+
+[core_lb:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
+ansible_ssh_user="ubuntu"
+ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
+server_ips=[%{for serverIP in module.core_cluster.server_private_ips ~}"${serverIP}", %{ endfor ~}]
 
 [core_server]
 %{for serverIP in module.core_cluster.server_private_ips~}
@@ -89,14 +95,6 @@ core_server
 
 [client:children]
 core_client
-
-[lb:vars]
-ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
-ansible_ssh_user="ubuntu"
-ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
-{% for serverIP in module.core_cluster.server_private_ips ~}
-server_ips[]="{{ serverIP }}"
-{% endfor ~}
 
 [server:vars]
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o ProxyCommand="ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ${abspath(path.root)}/keys/${var.project_name}.pem -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
