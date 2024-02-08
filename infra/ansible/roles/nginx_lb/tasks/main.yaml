@@ -1,4 +1,19 @@
-- name: Install nginx
+- name: "write_tls_files"
+  become: true
+  ansible.builtin.copy:
+    dest: "{{ item.dest }}"
+    content: "{{ item.content }}"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0644"
+  when: nomad_cli_profile_enabled is true
+  loop:
+    - dest: "{{ nomad_config_dir }}/tls/cli.pem"
+      content: "{{ nomad_cli_tls_cert }}"
+    - dest: "{{ nomad_config_dir }}/tls/cli-key.pem"
+      content: "{{ nomad_cli_tls_cert_key }}"
+
+- name: install nginx
   ansible.builtin.package:
     name: nginx
     state: latest
@@ -7,9 +22,9 @@
   become: true
   ansible.builtin.template:
     src: "nginx.conf.j2"
-    dest: "{{ influxdb_telegraf_config_dir }}/base.conf"
-    owner: "{{ influxdb_telegraf_user }}"
-    group: "{{ influxdb_telegraf_group }}"
-    mode: "0655"
+    dest: "/etc/nginx/sites-available/default"
+    owner: root
+    group: root
+    mode: "0644"
   notify:
-    - "restart_nginx_lb"
+    - "restart_nginx"
