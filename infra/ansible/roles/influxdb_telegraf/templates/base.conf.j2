@@ -1,5 +1,6 @@
 [[inputs.nomad]]
-url = "{{ influxdb_telegraf_input_nomad_url }}"
+url    = "{{ influxdb_telegraf_input_nomad_url }}"
+tls_ca = "{{ influxdb_telegraf_input_nomad_tls_ca }}"
 
 [[outputs.influxdb_v2]]
 urls         = {{ influxdb_telegraf_output_urls }}
@@ -19,3 +20,10 @@ core_tags        = true
 [[inputs.kernel]]
 
 [[inputs.net]]
+
+[[inputs.tail]]
+  files              = ["{{ influxdb_telegraf_inout_nomad_log_file }}"]
+  data_format        = "json"
+  json_string_fields = ["@level", "@module", "@message", "@caller"]
+  json_time_key      = "@timestamp"
+  json_time_format   = "2006-01-02T15:04:05Z07:00"
