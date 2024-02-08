@@ -2,7 +2,7 @@ output "message" {
   value = <<-EOM
 Your Control Cluster has been provisioned!
 
-Load balancer address: https://${module.core_cluster_lb.lb_dns_name}:80
+Load balancer address: https://${module.core_cluster_lb.lb_ip}
 
 SSH into the bastion host:
   ssh -i ./keys/${var.project_name}.pem ubuntu@${module.bastion.public_ip}
@@ -13,8 +13,9 @@ SSH into instance:
 Open SSH tunnel to Nomad:
   ssh -i ./keys/${var.project_name}.pem -L 4646:<PRIVATE IP>:4646 ubuntu@${module.bastion.public_ip}
 
-In order to provision the cluster, you can run the following Ansible command:
+In order to provision the cluster, you have to run the following Ansible commands:
   cd ../../../../ansible && \
+    ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_eu-west-2_core_lb.yaml && \
     ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_eu-west-2_core_server.yaml && \
     ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_eu-west-2_core_client.yaml
 
@@ -22,7 +23,7 @@ CA, Certs, and Keys for Nomad have been provisioned here:
   ${abspath(path.module)}/.tls-${var.project_name}
 
 In order to connect to the Nomad cluster, you need to setup the following environment variables:
-  export NOMAD_ADDR=https://${module.core_cluster_lb.lb_dns_name}:80
+  export NOMAD_ADDR=https://${module.core_cluster_lb.lb_ip}:80
   export NOMAD_CACERT=${module.core_cluster.ca_cert_path}
   export NOMAD_CLIENT_CERT=${module.core_cluster.nomad_client_cert_path}
   export NOMAD_CLIENT_KEY=${module.core_cluster.nomad_client_key_path}
@@ -32,11 +33,11 @@ perform the initial job registrations. Once the allocations have been started, T
 available on your LB at port 8080, and InfluxDB at port 8086. If you need to customize any of
 the jobs via the available variables, please check the job specificaitons.
   nomad run \
-    -address=https://${module.core_cluster_lb.lb_dns_name}:80 \
+    -address=https://${module.core_cluster_lb.lb_ip}:443 \
     -var='tls_ca_path=${module.core_cluster.ca_cert_path}' \
     ../../../../jobs/traefik.nomad.hcl
 
-  nomad run -address=https://${module.core_cluster_lb.lb_dns_name}:80 ../../../../jobs/influxdb.nomad.hcl
+  nomad run -address=https://${module.core_cluster_lb.lb_ip}:443 ../../../../jobs/influxdb.nomad.hcl
 EOM
 }
 
@@ -88,6 +89,11 @@ core_server
 
 [client:children]
 core_client
+
+[lb:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
+ansible_ssh_user="ubuntu"
+ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
 
 [server:vars]
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o ProxyCommand="ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ${abspath(path.root)}/keys/${var.project_name}.pem -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
