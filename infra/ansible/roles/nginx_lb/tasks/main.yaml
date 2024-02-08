@@ -14,9 +14,10 @@
       content: "{{ nomad_cli_tls_cert_key }}"
 
 - name: install nginx
-  ansible.builtin.package:
+  become: true
+  ansible.builtin.apt:
     name: nginx
-    state: latest
+    state: present
 
 - name: "create_nginx_lb_config"
   become: true

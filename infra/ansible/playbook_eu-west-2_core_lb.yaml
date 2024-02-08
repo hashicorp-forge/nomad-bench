@@ -1,4 +1,4 @@
-- hosts: lb
+- hosts: core_lb
   roles:
     - role: nginx_lb
       vars:
