@@ -1,5 +1,5 @@
 upstream nomad {
-    {% for address in core_server %}
+    {% for address in server_ips %}
         {{ address }}:4646;
     {% endfor %}
 }

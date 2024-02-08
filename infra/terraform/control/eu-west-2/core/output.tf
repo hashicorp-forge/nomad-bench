@@ -63,57 +63,50 @@ EOM
 
 resource "local_file" "ansible_inventory" {
   content  = <<EOT
-bastion:
-  hosts:
-    ${module.bastion.public_ip}
+[bastion]
+${module.bastion.public_ip}
 
-  vars:
-    ansible_user= "ubuntu"
-    ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
-    ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
+[bastion:vars]
+ansible_user= "ubuntu"
+ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
 
-core_lb:
-  hosts:
-    ${module.core_cluster_lb.lb_ip}
+[lb]
+${module.core_cluster_lb.lb_ip}
 
-core_server:
-  hosts:
-    %{for serverIP in module.core_cluster.server_private_ips~}
-    ${serverIP}
-    %{endfor~}
+[core_server]
+%{for serverIP in module.core_cluster.server_private_ips~}
+${serverIP}
+%{endfor~}
 
-core_client:
-  hosts:
-    %{for clientIP in module.core_cluster.client_private_ips~}
-    ${clientIP}
-    %{endfor~}
+[core_client]
+%{for clientIP in module.core_cluster.client_private_ips~}
+${clientIP}
+%{endfor~}
 
-server:
-  children:
-    core_server
-  vars:
-    ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o ProxyCommand="ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ${abspath(path.root)}/keys/${var.project_name}.pem -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
-    ansible_ssh_user="ubuntu"
-    ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
+[server:children]
+core_server
 
-client:
-  children:
-    core_client
-  vars:
-    ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o ProxyCommand="ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ${abspath(path.root)}/keys/${var.project_name}.pem -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
-    ansible_ssh_user="ubuntu"
-    ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
+[client:children]
+core_client
 
-lb:
-  vars:
-    ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
-    ansible_ssh_user="ubuntu"
-    ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
-    servers = [
-      %{for serverIP in module.core_cluster.server_private_ips~}
-      "${serverIP}",
-      %{endfor~}
-    ]
+[lb:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
+ansible_ssh_user="ubuntu"
+ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
+{% for serverIP in module.core_cluster.server_private_ips ~}
+server_ips[]="{{ serverIP }}"
+{% endfor ~}
+
+[server:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o ProxyCommand="ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ${abspath(path.root)}/keys/${var.project_name}.pem -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
+ansible_ssh_user="ubuntu"
+ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
+
+[client:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o ProxyCommand="ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ${abspath(path.root)}/keys/${var.project_name}.pem -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
+ansible_ssh_user="ubuntu"
+ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
 EOT
-  filename = "${path.module}/../../../../ansible/${var.project_name}_control_inventory.yaml"
+  filename = "${path.module}/../../../../ansible/${var.project_name}_control_inventory.ini"
 }
