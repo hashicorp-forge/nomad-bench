@@ -15,15 +15,15 @@ Open SSH tunnel to Nomad:
 
 In order to provision the cluster, you have to run the following Ansible commands:
   cd ../../../../ansible && \
-    ansible-playbook -i ./${var.project_name}_control_inventory.yaml ./playbook_eu-west-2_core_lb.yaml && \
     ansible-playbook -i ./${var.project_name}_control_inventory.yaml ./playbook_eu-west-2_core_server.yaml && \
-    ansible-playbook -i ./${var.project_name}_control_inventory.yaml ./playbook_eu-west-2_core_client.yaml
+    ansible-playbook -i ./${var.project_name}_control_inventory.yaml ./playbook_eu-west-2_core_client.yaml && \
+    ansible-playbook -i ./${var.project_name}_control_inventory.yaml ./playbook_eu-west-2_core_lb.yaml
 
 CA, Certs, and Keys for Nomad have been provisioned here:
   ${abspath(path.module)}/.tls-${var.project_name}
 
 In order to connect to the Nomad cluster, you need to setup the following environment variables:
-  export NOMAD_ADDR=https://${module.core_cluster_lb.lb_ip}:80
+  export NOMAD_ADDR=https://${module.core_cluster_lb.lb_ip}:443
   export NOMAD_CACERT=${module.core_cluster.ca_cert_path}
   export NOMAD_CLIENT_CERT=${module.core_cluster.nomad_client_cert_path}
   export NOMAD_CLIENT_KEY=${module.core_cluster.nomad_client_key_path}
