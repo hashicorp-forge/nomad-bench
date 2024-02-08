@@ -3,15 +3,16 @@
   ansible.builtin.copy:
     dest: "{{ item.dest }}"
     content: "{{ item.content }}"
-    owner: "{{ nomad_user }}"
-    group: "{{ nomad_group }}"
+    owner: "root"
+    group: "root"
     mode: "0644"
-  when: nomad_cli_profile_enabled is true
   loop:
-    - dest: "{{ nomad_config_dir }}/tls/cli.pem"
-      content: "{{ nomad_cli_tls_cert }}"
-    - dest: "{{ nomad_config_dir }}/tls/cli-key.pem"
-      content: "{{ nomad_cli_tls_cert_key }}"
+    - dest: "/etc/nginx/server.crt"
+      content: "{{ tls_cert }}"
+    - dest: "/etc/nginx/server.key"
+      content: "{{ tls_cert_key }}"
+    - dest: "/etc/nginx/ca-certs.pem"
+      content: "{{ ca_cert }}"
 
 - name: install nginx
   become: true
