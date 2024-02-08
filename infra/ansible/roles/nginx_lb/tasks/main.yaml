@@ -1,0 +1,15 @@
+- name: Install nginx
+  ansible.builtin.package:
+    name: nginx
+    state: latest
+
+- name: "create_nginx_lb_config"
+  become: true
+  ansible.builtin.template:
+    src: "nginx.conf.j2"
+    dest: "{{ influxdb_telegraf_config_dir }}/base.conf"
+    owner: "{{ influxdb_telegraf_user }}"
+    group: "{{ influxdb_telegraf_group }}"
+    mode: "0655"
+  notify:
+    - "restart_nginx_lb"

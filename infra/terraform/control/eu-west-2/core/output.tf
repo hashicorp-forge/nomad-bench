@@ -70,6 +70,9 @@ ansible_user= "ubuntu"
 ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
 
+[lb]
+${module.core_cluster_lb.lb_ip}
+
 [core_server]
 %{for serverIP in module.core_cluster.server_private_ips~}
 ${serverIP}
