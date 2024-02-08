@@ -22,6 +22,8 @@
       content: "{{ nomad_tls_cert }}"
     - dest: "{{ nomad_config_dir }}tls/cert-key.pem"
       content: "{{ nomad_tls_cert_key }}"
+  notify:
+    - "restart_nomad"
 
 - name: "create_tls_config_file"
   become: true
