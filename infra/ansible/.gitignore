@@ -1,5 +1,6 @@
 # Generated Ansible inventory files.
 *_inventory.ini
+*_inventory.yaml
 
 # Python virtual environment.
 .venv
