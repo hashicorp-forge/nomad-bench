@@ -2,6 +2,9 @@
   roles:
     - role: cni
 
+    - role: "geerlingguy.docker"
+      become: true
+
     - role: nomad
       vars:
         nomad_tls_enable: true
