@@ -1,3 +1,9 @@
+- name: install nginx
+  become: true
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+
 - name: "write_tls_files"
   become: true
   ansible.builtin.copy:
@@ -13,12 +19,6 @@
       content: "{{ tls_cert_key }}"
     - dest: "/etc/nginx/ca-certs.pem"
       content: "{{ ca_cert }}"
-
-- name: install nginx
-  become: true
-  ansible.builtin.apt:
-    name: nginx
-    state: present
 
 - name: "create_nginx_lb_config"
   become: true
