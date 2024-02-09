@@ -13,15 +13,3 @@ output "client_ids" {
 output "client_private_ips" {
   value = aws_instance.clients.*.private_ip
 }
-
-output "ca_cert_path" {
-  value = "${abspath(path.module)}/.tls-${var.project_name}/nomad-agent-ca.pem"
-}
-
-output "nomad_client_cert_path" {
-  value = "${abspath(path.module)}/.tls-${var.project_name}/global-client-nomad.pem"
-}
-
-output "nomad_client_key_path" {
-  value = "${abspath(path.module)}/.tls-${var.project_name}/global-client-nomad-key.pem"
-}

@@ -1,0 +1,32 @@
+- name: install nginx
+  become: true
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+
+- name: "write_tls_files"
+  become: true
+  ansible.builtin.copy:
+    dest: "{{ item.dest }}"
+    content: "{{ item.content }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  loop:
+    - dest: "/etc/nginx/server.crt"
+      content: "{{ tls_cert }}"
+    - dest: "/etc/nginx/server.key"
+      content: "{{ tls_cert_key }}"
+    - dest: "/etc/nginx/ca-certs.pem"
+      content: "{{ ca_cert }}"
+
+- name: "create_nginx_lb_config"
+  become: true
+  ansible.builtin.template:
+    src: "nginx.conf.j2"
+    dest: "/etc/nginx/sites-available/default"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - "restart_nginx"

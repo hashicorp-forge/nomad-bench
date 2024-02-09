@@ -2,7 +2,7 @@ output "message" {
   value = <<-EOM
 Your Control Cluster has been provisioned!
 
-Load balancer address: https://${module.core_cluster_lb.lb_dns_name}:80
+Load balancer address: https://${module.core_cluster_lb.lb_ip}
 
 SSH into the bastion host:
   ssh -i ./keys/${var.project_name}.pem ubuntu@${module.bastion.public_ip}
@@ -13,30 +13,31 @@ SSH into instance:
 Open SSH tunnel to Nomad:
   ssh -i ./keys/${var.project_name}.pem -L 4646:<PRIVATE IP>:4646 ubuntu@${module.bastion.public_ip}
 
-In order to provision the cluster, you can run the following Ansible command:
+In order to provision the cluster, you have to run the following Ansible commands:
   cd ../../../../ansible && \
+    ansible-galaxy install -r requirements.yaml && \
     ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_eu-west-2_core_server.yaml && \
-    ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_eu-west-2_core_client.yaml
+    ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_eu-west-2_core_client.yaml && \
+    ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_eu-west-2_core_lb.yaml
 
 CA, Certs, and Keys for Nomad have been provisioned here:
   ${abspath(path.module)}/.tls-${var.project_name}
 
 In order to connect to the Nomad cluster, you need to setup the following environment variables:
-  export NOMAD_ADDR=https://${module.core_cluster_lb.lb_dns_name}:80
-  export NOMAD_CACERT=${module.core_cluster.ca_cert_path}
-  export NOMAD_CLIENT_CERT=${module.core_cluster.nomad_client_cert_path}
-  export NOMAD_CLIENT_KEY=${module.core_cluster.nomad_client_key_path}
+  export NOMAD_ADDR=https://${module.core_cluster_lb.lb_ip}:443
+  export NOMAD_CACERT=${module.core_cluster_tls.ca_cert_path}
+  export NOMAD_CLIENT_CERT=${module.core_cluster_tls.nomad_client_cert_path}
+  export NOMAD_CLIENT_KEY=${module.core_cluster_tls.nomad_client_key_path}
 
 If you are deploying Traefik and InfluxDB to this cluster, the following commands can be used to
 perform the initial job registrations. Once the allocations have been started, Traefik will be
 available on your LB at port 8080, and InfluxDB at port 8086. If you need to customize any of
 the jobs via the available variables, please check the job specificaitons.
   nomad run \
-    -address=https://${module.core_cluster_lb.lb_dns_name}:80 \
-    -var='tls_ca_path=${module.core_cluster.ca_cert_path}' \
+    -var='tls_ca_path=${module.core_cluster_tls.ca_cert_path}' \
     ../../../../jobs/traefik.nomad.hcl
 
-  nomad run -address=https://${module.core_cluster_lb.lb_dns_name}:80 ../../../../jobs/influxdb.nomad.hcl
+  nomad run ../../../../jobs/influxdb.nomad.hcl
 EOM
 }
 
@@ -69,6 +70,15 @@ ${module.bastion.public_ip}
 ansible_user= "ubuntu"
 ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
+
+[core_lb]
+${module.core_cluster_lb.lb_ip}
+
+[core_lb:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
+ansible_ssh_user="ubuntu"
+ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
+server_ips=[%{for serverIP in module.core_cluster.server_private_ips~}"${serverIP}", %{endfor~}]
 
 [core_server]
 %{for serverIP in module.core_cluster.server_private_ips~}

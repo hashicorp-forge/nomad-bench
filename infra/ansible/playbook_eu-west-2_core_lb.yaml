@@ -1,0 +1,7 @@
+- hosts: core_lb
+  roles:
+    - role: nginx_lb
+      vars:
+        ca_cert: "{{ lookup('file', '../terraform/control/eu-west-2/core/tls/nomad-agent-ca.pem') }}"
+        tls_cert: "{{ lookup('file', '../terraform/control/eu-west-2/core/tls/global-client-nomad.pem') }}"
+        tls_cert_key: "{{ lookup('file', '../terraform/control/eu-west-2/core/tls/global-client-nomad-key.pem') }}"

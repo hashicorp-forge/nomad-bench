@@ -1,7 +1,3 @@
-output "lb_dns_name" {
-  value = aws_lb.lb.dns_name
-}
-
 output "lb_ip" {
   value = aws_instance.nomad_nginx_lb.public_ip
 }
