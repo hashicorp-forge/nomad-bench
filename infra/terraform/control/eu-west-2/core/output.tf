@@ -29,14 +29,10 @@ In order to connect to the Nomad cluster, you need to setup the following enviro
   export NOMAD_CLIENT_CERT=${module.core_cluster_tls.nomad_client_cert_path}
   export NOMAD_CLIENT_KEY=${module.core_cluster_tls.nomad_client_key_path}
 
-If you are deploying Traefik and InfluxDB to this cluster, the following commands can be used to
-perform the initial job registrations. Once the allocations have been started, Traefik will be
-available on your LB at port 8080, and InfluxDB at port 8086. If you need to customize any of
-the jobs via the available variables, please check the job specificaitons.
-  nomad run \
-    -var='tls_ca_path=${module.core_cluster_tls.ca_cert_path}' \
-    ../../../../jobs/traefik.nomad.hcl
-
+If you are deploying InfluxDB to this cluster, the following command can be used
+to perform the initial job registration. Once the allocations have been started,
+InfluxDB will be available on your LB at port 8086. If you need to customize any
+of the jobs via the available variables, please check the job specificaitons.
   nomad run ../../../../jobs/influxdb.nomad.hcl
 EOM
 }
