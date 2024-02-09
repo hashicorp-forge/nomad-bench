@@ -15,9 +15,10 @@ Open SSH tunnel to Nomad:
 
 In order to provision the cluster, you have to run the following Ansible commands:
   cd ../../../../ansible && \
-    ansible-playbook -i ./${var.project_name}_control_inventory.yaml ./playbook_eu-west-2_core_server.yaml && \
-    ansible-playbook -i ./${var.project_name}_control_inventory.yaml ./playbook_eu-west-2_core_client.yaml && \
-    ansible-playbook -i ./${var.project_name}_control_inventory.yaml ./playbook_eu-west-2_core_lb.yaml
+    ansible-galaxy install -r requirements.yaml && \
+    ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_eu-west-2_core_server.yaml && \
+    ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_eu-west-2_core_client.yaml && \
+    ansible-playbook -i ./${var.project_name}_control_inventory.ini ./playbook_eu-west-2_core_lb.yaml
 
 CA, Certs, and Keys for Nomad have been provisioned here:
   ${abspath(path.module)}/.tls-${var.project_name}
@@ -78,7 +79,7 @@ ${module.core_cluster_lb.lb_ip}
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
 ansible_ssh_user="ubuntu"
 ansible_ssh_private_key_file="${abspath(path.root)}/keys/${var.project_name}.pem"
-server_ips=[%{for serverIP in module.core_cluster.server_private_ips ~}"${serverIP}", %{ endfor ~}]
+server_ips=[%{for serverIP in module.core_cluster.server_private_ips~}"${serverIP}", %{endfor~}]
 
 [core_server]
 %{for serverIP in module.core_cluster.server_private_ips~}
