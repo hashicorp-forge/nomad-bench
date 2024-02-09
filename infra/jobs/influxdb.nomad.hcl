@@ -30,7 +30,7 @@ job "influxdb" {
     network {
       mode = "bridge"
       port "influxdb" {
-        to = 8086
+        static = 8086
       }
     }
 
@@ -44,11 +44,6 @@ job "influxdb" {
       name     = "influxdb"
       port     = "influxdb"
       provider = "nomad"
-      tags     = [
-        "traefik.enable=true",
-        "traefik.http.routers.influxdb.entrypoints=influxdb",
-        "traefik.http.routers.influxdb.rule=PathPrefix(`/`)"
-      ]
 
       check {
         name     = "influxdb_http_probe"
@@ -65,7 +60,7 @@ job "influxdb" {
       config {
         image = "influxdb:2.7.5"
         ports = ["influxdb"]
-        args  = [
+        args = [
           "--http-bind-address=0.0.0.0:8086",
         ]
       }

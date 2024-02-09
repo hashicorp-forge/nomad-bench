@@ -44,6 +44,15 @@ resource "aws_security_group_rule" "user_ingress_22" {
   to_port           = 22
 }
 
+resource "aws_security_group_rule" "user_ingress_8086" {
+  security_group_id = aws_security_group.lb.id
+  cidr_blocks       = var.user_ingress_ips
+  type              = "ingress"
+  protocol          = "tcp"
+  from_port         = 8086
+  to_port           = 8086
+}
+
 resource "aws_security_group_rule" "all_egress" {
   security_group_id = aws_security_group.lb.id
   cidr_blocks       = ["0.0.0.0/0"]

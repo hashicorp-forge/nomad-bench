@@ -51,11 +51,9 @@ module "core_cluster_lb" {
   source = "../../../modules/nomad-lb"
 
   project_name                 = var.project_name
-  nomad_server_instance_ids    = module.core_cluster.server_ids
   subnet_ids                   = module.network.public_subnet_ids
   vpc_cidr_block               = module.network.vpc_cidr_block
   vpc_id                       = module.network.vpc_id
-  nomad_traefik_instance_ids   = module.core_cluster.client_ids
   user_ingress_ips             = [var.jrasell_ip, var.pkazmierczak_ip]
   ami                          = data.aws_ami.ubuntu.id
   key_name                     = module.keys.key_name
