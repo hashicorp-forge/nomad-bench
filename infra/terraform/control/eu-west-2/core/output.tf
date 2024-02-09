@@ -25,20 +25,19 @@ CA, Certs, and Keys for Nomad have been provisioned here:
 
 In order to connect to the Nomad cluster, you need to setup the following environment variables:
   export NOMAD_ADDR=https://${module.core_cluster_lb.lb_ip}:443
-  export NOMAD_CACERT=${module.core_cluster.ca_cert_path}
-  export NOMAD_CLIENT_CERT=${module.core_cluster.nomad_client_cert_path}
-  export NOMAD_CLIENT_KEY=${module.core_cluster.nomad_client_key_path}
+  export NOMAD_CACERT=${module.core_cluster_tls.ca_cert_path}
+  export NOMAD_CLIENT_CERT=${module.core_cluster_tls.nomad_client_cert_path}
+  export NOMAD_CLIENT_KEY=${module.core_cluster_tls.nomad_client_key_path}
 
 If you are deploying Traefik and InfluxDB to this cluster, the following commands can be used to
 perform the initial job registrations. Once the allocations have been started, Traefik will be
 available on your LB at port 8080, and InfluxDB at port 8086. If you need to customize any of
 the jobs via the available variables, please check the job specificaitons.
   nomad run \
-    -address=https://${module.core_cluster_lb.lb_ip}:443 \
-    -var='tls_ca_path=${module.core_cluster.ca_cert_path}' \
+    -var='tls_ca_path=${module.core_cluster_tls.ca_cert_path}' \
     ../../../../jobs/traefik.nomad.hcl
 
-  nomad run -address=https://${module.core_cluster_lb.lb_ip}:443 ../../../../jobs/influxdb.nomad.hcl
+  nomad run ../../../../jobs/influxdb.nomad.hcl
 EOM
 }
 
