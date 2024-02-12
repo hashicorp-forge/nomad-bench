@@ -2,6 +2,7 @@ nomad_user: root
 nomad_group: root
 nomad_config_dir: "/etc/nomad.d/"
 
+nomad_region: "global"
 nomad_log_level: "DEBUG"
 nomad_log_json: true
 nomad_log_include_location: true
