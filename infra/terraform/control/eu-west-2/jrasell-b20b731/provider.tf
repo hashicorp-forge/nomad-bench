@@ -16,11 +16,9 @@ provider "aws" {
   region = var.region
 }
 
-provider "nomad" {
-  address = "CHANGE_ME"
-}
+provider "nomad" {}
 
 provider "influxdb-v2" {
-  url   = "CHANGE_ME"
-  token = "CHANGE_ME_OR_USE_`INFLUXDB_V2_TOKEN`_ENV_VAR"
+  url   = "http://52.56.35.45:8086"
+  token = "ZuXY8FXZL435F7TXeiA_UUOnx4cA4pCqDfsbYyW9O9eysFeR_5SmcNS8ZKb35FtG50ul4WIxAz9RksGt6fb1og=="
 }

@@ -34,6 +34,15 @@ module "bastion" {
   subnet_id            = element(module.network.public_subnet_ids, 0)
 }
 
+module "tls_certs" {
+  source = "../../../modules/nomad-tls"
+
+  lb_ip           = module.core_cluster_lb.lb_public_ip
+  client_ips      = join(" ", module.core_cluster.client_private_ips)
+  server_ips      = join(" ", module.core_cluster.server_private_ips)
+  tls_output_path = "${path.cwd}/tls"
+}
+
 module "core_cluster" {
   source = "../../../modules/nomad-cluster"
 
@@ -60,11 +69,15 @@ module "core_cluster_lb" {
   nomad_nginx_lb_instance_type = "t3.micro"
 }
 
-module "core_cluster_tls" {
-  source = "../../../modules/nomad-tls"
+module "output" {
+  source = "../../../modules/nomad-output"
 
-  tls_output_path = "${path.cwd}/tls"
-  lb_ip           = module.core_cluster_lb.lb_ip
-  client_ips      = join(" ", module.core_cluster.client_private_ips)
-  server_ips      = join(" ", module.core_cluster.server_private_ips)
+  project_name                = var.project_name
+  bastion_host_public_ip      = module.bastion.public_ip
+  nomad_server_private_ips    = module.core_cluster.server_private_ips
+  nomad_client_private_ips    = module.core_cluster.client_private_ips
+  ssh_key_path                = abspath(module.keys.private_key_filepath)
+  tls_certs_root_path         = "${path.cwd}/tls"
+  nomad_lb_public_ip_address  = module.core_cluster_lb.lb_public_ip
+  nomad_lb_private_ip_address = module.core_cluster_lb.lb_private_ip
 }

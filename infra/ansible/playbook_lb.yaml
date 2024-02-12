@@ -1,0 +1,9 @@
+- hosts: lb
+  roles:
+    - role: common
+
+    - role: nginx_lb
+      vars:
+        ca_cert: "{{ lookup('file', '../terraform/control/{{ ansible_ec2_placement_region }}/{{ project_name }}/tls/nomad-agent-ca.pem') }}"
+        tls_cert: "{{ lookup('file', '../terraform/control/{{ ansible_ec2_placement_region }}/{{ project_name }}/tls/{{ nomad_region }}-client-nomad.pem') }}"
+        tls_cert_key: "{{ lookup('file', '../terraform/control/{{ ansible_ec2_placement_region }}/{{ project_name }}/tls/{{ nomad_region }}-client-nomad-key.pem') }}"

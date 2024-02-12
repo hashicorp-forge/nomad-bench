@@ -12,6 +12,13 @@
     mode: "0750"
   when: not log_file.stat.exists
 
+- name: "create_config_dir"
+  become: true
+  ansible.builtin.file:
+    path: "{{ nomad_config_dir }}"
+    state: directory
+    mode: "0755"
+
 - name: "create_base_config_file"
   become: true
   ansible.builtin.template:

@@ -1,3 +1,9 @@
+data "aws_instance" "lb" {
+  instance_tags = {
+    Name = "bench-core-jrasell_nginx_lb"
+  }
+}
+
 data "aws_ami" "ubuntu" {
   filter {
     name   = "name"
@@ -21,9 +27,28 @@ module "jrasell_b20b731" {
   client_count         = 0
 }
 
-module "jrasell_b20b731_bootstrap" {
+module "tls_certs" {
+  source = "../../../modules/nomad-tls"
+
+  lb_ip           = var.bastion_ip
+  client_ips      = join(" ", module.jrasell_b20b731.client_private_ips)
+  server_ips      = join(" ", module.jrasell_b20b731.server_private_ips)
+  tls_output_path = "${path.cwd}/tls"
+}
+
+module "bootstrap" {
   source = "../../../modules/test-bench-bootstrap"
 
-  project_name             = var.project_name
-  influxdb_bucket_suffixes = ["run-1", "run-2", "run-3"]
+  project_name = var.project_name
+}
+
+module "output" {
+  source = "../../../modules/nomad-output"
+
+  project_name                = var.project_name
+  bastion_host_public_ip      = var.bastion_ip
+  nomad_server_private_ips    = module.jrasell_b20b731.server_private_ips
+  ssh_key_path                = var.ssh_key_path
+  tls_certs_root_path         = "${path.cwd}/tls"
+  nomad_lb_private_ip_address = data.aws_instance.lb.private_ip
 }
