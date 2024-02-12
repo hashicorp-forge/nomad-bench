@@ -1,0 +1,2 @@
+project_name: "nomad-bench"
+nomad_region: "global"
