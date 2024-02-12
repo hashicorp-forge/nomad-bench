@@ -3,6 +3,7 @@ nomad_group: root
 nomad_config_dir: "/etc/nomad.d/"
 
 nomad_region: "global"
+nomad_data_dir: "/opt/nomad/data"
 nomad_log_level: "DEBUG"
 nomad_log_json: true
 nomad_log_include_location: true
