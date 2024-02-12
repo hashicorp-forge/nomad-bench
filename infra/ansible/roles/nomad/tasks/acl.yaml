@@ -1,0 +1,28 @@
+- name: nomad acl config
+  ansible.builtin.copy:
+    src: acl.hcl
+    dest: /etc/nomad.d/acl.hcl
+  become: true
+  notify: restart_nomad
+
+- name: nomad acl bootstrap
+  shell: nomad acl bootstrap -t json
+  run_once: true
+  register: acl_token
+  environment: 
+    NOMAD_ADDR: "https://localhost:4646"
+    NOMAD_CACERT: "/etc/nomad.d/tls/ca.pem"
+    NOMAD_CLIENT_CERT: "/etc/nomad.d/tls/cert.pem"
+    NOMAD_CLIENT_KEY: "/etc/nomad.d/tls/cert-key.pem"
+
+- set_fact: 
+    root_token={{ acl_token.stdout | from_json | json_query('SecretID')}}
+
+- name: set anonymous policy
+  shell: nomad acl policy apply -description "Anonymous policy" -name "anonymous" -rules anonymous.hcl
+  environment: 
+    NOMAD_ADDR: "https://localhost:4646"
+    NOMAD_CACERT: "/etc/nomad.d/tls/ca.pem"
+    NOMAD_CLIENT_CERT: "/etc/nomad.d/tls/cert.pem"
+    NOMAD_CLIENT_KEY: "/etc/nomad.d/tls/cert-key.pem"
+    NOMAD_TOKEN: "{{ root_token }}"

@@ -12,3 +12,19 @@ resource "null_resource" "provision_tls_certs" {
     command = "rm -rf ${self.triggers.output_path}"
   }
 }
+
+# data "external" "setup_acl" {
+#   program = ["nomad", "boostrap acl -t json | jq .SecretID"]
+# }
+
+# resource "null_resource" "setup_acl" {
+#   triggers = {
+#     stdout = "${data.external.setup_acl.result["stdout"]}"
+#   }
+
+#   lifecycle {
+#     ignore_changes = [
+#       triggers,
+#     ]
+#   }
+# }
