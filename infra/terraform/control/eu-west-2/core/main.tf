@@ -35,13 +35,15 @@ module "bastion" {
   subnet_id            = element(module.network.public_subnet_ids, 0)
 }
 
-module "tls_certs" {
-  source = "../../../modules/nomad-tls"
+module "tls_certs_and_acl" {
+  source = "../../../modules/nomad-tls-acl"
 
-  lb_ip           = module.core_cluster_lb.lb_public_ip
-  client_ips      = join(" ", module.core_cluster.client_private_ips)
-  server_ips      = join(" ", module.core_cluster.server_private_ips)
-  tls_output_path = "${path.cwd}/tls"
+  lb_ip            = module.core_cluster_lb.lb_public_ip
+  client_ips       = join(" ", module.core_cluster.client_private_ips)
+  server_ips       = join(" ", module.core_cluster.server_private_ips)
+  tls_output_path  = "${path.cwd}/tls"
+  bastion_host     = module.bastion.public_ip
+  private_key_path = "${abspath(path.module)}/${module.keys.private_key_filepath}"
 }
 
 module "core_cluster" {
