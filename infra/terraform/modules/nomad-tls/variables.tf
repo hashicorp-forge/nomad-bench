@@ -17,13 +17,3 @@ variable "server_ips" {
   description = "The string containing space-separated server IPs"
   type        = string
 }
-
-variable "bastion_host" {
-  description = "The IP address of the bastion host."
-  type        = string
-}
-
-variable "private_key_path" {
-  description = "The path to the private key to use for SSH connections."
-  type        = string
-}

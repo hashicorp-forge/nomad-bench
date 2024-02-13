@@ -41,3 +41,5 @@ nomad_tls_cert_key: ""
 nomad_cli_profile_enabled: false
 nomad_cli_tls_cert: ""
 nomad_cli_tls_cert_key: ""
+
+nomad_acl_enabled: false
