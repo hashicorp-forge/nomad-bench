@@ -23,6 +23,13 @@
     NOMAD_CLIENT_KEY: "{{ nomad_config_dir }}/tls/cli-key.pem"
   register: nomad_acl
 
+- name: "store_bootstrap_token"
+  run_once: true
+  ansible.builtin.copy:
+    content: "{{ nomad_acl.stdout | from_json }}"
+    dest: "nomad_acl.json"
+  delegate_to: localhost
+
 - name: "write_anonymous_policy"
   become: true
   ansible.builtin.copy:
