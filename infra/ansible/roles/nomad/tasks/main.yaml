@@ -12,6 +12,15 @@
     mode: "0750"
   when: not log_file.stat.exists
 
+- name: "create_data_dir"
+  become: true
+  ansible.builtin.file:
+    path: "{{ nomad_data_dir }}"
+    state: directory
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0755"
+
 - name: "create_config_dir"
   become: true
   ansible.builtin.file:
