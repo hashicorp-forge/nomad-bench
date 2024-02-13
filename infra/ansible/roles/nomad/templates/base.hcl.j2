@@ -5,3 +5,18 @@ log_level            = "{{ nomad_log_level | upper }}"
 log_json             = {{ nomad_log_json | lower }}
 log_include_location = {{ nomad_log_include_location | lower }}
 log_file             = "{{ nomad_log_file }}"
+
+limits {
+  https_handshake_timeout   = "{{ nomad_limits_https_handshake_timeout }}"
+  http_max_conns_per_client = {{ nomad_limits_http_max_conns_per_client }}
+  {% if nomad_server_enabled %}
+  rpc_handshake_timeout     = "{{ nomad_limits_rpc_handshake_timeout }}"
+  rpc_max_conns_per_client  = {{ nomad_limits_rpc_max_conns_per_client }}
+  {% endif %}
+}
+
+telemetry {
+  publish_allocation_metrics = {{ nomad_telemetry_publish_allocation_metrics | lower }}
+  publish_node_metrics       = {{ nomad_telemetry_publish_node_metrics | lower }}
+  prometheus_metrics         = {{ nomad_telemetry_prometheus_metrics | lower }}
+}

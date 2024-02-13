@@ -9,7 +9,26 @@ nomad_log_json: true
 nomad_log_include_location: true
 nomad_log_file: "/var/log/nomad.log"
 
+nomad_server_enabled: false
+nomad_server_bootstrap_expect: 3
+
+nomad_client_enabled: false
+
 nomad_host_volumes: [ ]
+nomad_plugins: {}
+
+nomad_server_join_retry_join: [ ]
+nomad_server_join_retry_max: 0
+nomad_server_join_retry_interval: "30s"
+
+nomad_limits_https_handshake_timeout: "5s"
+nomad_limits_http_max_conns_per_client: 100
+nomad_limits_rpc_handshake_timeout: "5s"
+nomad_limits_rpc_max_conns_per_client: 100
+
+nomad_telemetry_publish_allocation_metrics: false
+nomad_telemetry_publish_node_metrics: false
+nomad_telemetry_prometheus_metrics: false
 
 nomad_tls_enable: false
 nomad_tls_ca_cert: ""

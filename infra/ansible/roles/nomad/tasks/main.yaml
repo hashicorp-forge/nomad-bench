@@ -28,6 +28,12 @@
     state: directory
     mode: "0755"
 
+- name: "delete_default_nomad_config_file"
+  become: true
+  ansible.builtin.file:
+    path: "/etc/nomad.d/nomad.hcl"
+    state: absent
+
 - name: "create_base_config_file"
   become: true
   ansible.builtin.template:
@@ -36,6 +42,30 @@
     owner: "{{ nomad_user }}"
     group: "{{ nomad_group }}"
     mode: "0655"
+  notify:
+    - "restart_nomad"
+
+- name: "create_server_config_file"
+  become: true
+  ansible.builtin.template:
+    src: "server.hcl.j2"
+    dest: "{{ nomad_config_dir }}/server.hcl"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0655"
+  when: nomad_server_enabled is true
+  notify:
+    - "restart_nomad"
+
+- name: "create_client_config_file"
+  become: true
+  ansible.builtin.template:
+    src: "client.hcl.j2"
+    dest: "{{ nomad_config_dir }}/client.hcl"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0655"
+  when: nomad_client_enabled is true
   notify:
     - "restart_nomad"
 

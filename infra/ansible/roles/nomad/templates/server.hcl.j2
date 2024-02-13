@@ -1,0 +1,14 @@
+{% if nomad_server_enabled %}
+server {
+  enabled          = true
+  bootstrap_expect = {{ nomad_server_bootstrap_expect }}
+
+{% if nomad_server_join_retry_join | length > 0 %}
+  server_join {
+    retry_join     = {{ nomad_server_join_retry_join | to_json }}
+    retry_max      = {{ nomad_server_join_retry_max }}
+    retry_interval = "{{ nomad_server_join_retry_interval }}"
+  }
+{% endif %}
+}
+{% endif %}

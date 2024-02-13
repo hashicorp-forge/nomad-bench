@@ -4,6 +4,10 @@
 
     - role: nomad
       vars:
+        nomad_server_enabled: true
+        nomad_server_join_retry_join: [ "provider=aws tag_key=Nomad_role tag_value={{ project_name }}_server" ]
+        nomad_limits_http_max_conns_per_client: 0
+        nomad_limits_rpc_max_conns_per_client: 0
         nomad_tls_enable: true
         nomad_tls_ca_cert: "{{ lookup('file', '../terraform/control/{{ ansible_ec2_placement_region }}/{{ project_name }}/tls/nomad-agent-ca.pem') }}"
         nomad_tls_cert: "{{ lookup('file', '../terraform/control/{{ ansible_ec2_placement_region }}/{{ project_name }}/tls/{{ nomad_region }}-server-nomad.pem') }}"

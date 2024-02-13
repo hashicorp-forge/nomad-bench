@@ -9,12 +9,7 @@ resource "aws_instance" "servers" {
   iam_instance_profile        = aws_iam_instance_profile.nomad_instance_profile.id
   associate_public_ip_address = false
 
-  user_data = templatefile("${path.module}/nomad.sh", {
-    nomad_conf = templatefile("${path.module}/nomad_server.hcl", {
-      role   = "${var.project_name}_server"
-      expect = var.server_count
-    })
-  })
+  user_data                   = file("${path.module}/nomad.sh")
   user_data_replace_on_change = true
 
   root_block_device {
@@ -44,11 +39,7 @@ resource "aws_instance" "clients" {
   iam_instance_profile        = aws_iam_instance_profile.nomad_instance_profile.id
   associate_public_ip_address = false
 
-  user_data = templatefile("${path.module}/nomad.sh", {
-    nomad_conf = templatefile("${path.module}/nomad_client.hcl", {
-      role = "${var.project_name}_server"
-    })
-  })
+  user_data                   = file("${path.module}/nomad.sh")
   user_data_replace_on_change = true
 
   root_block_device {
