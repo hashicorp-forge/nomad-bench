@@ -2,6 +2,9 @@ nomad_user: root
 nomad_group: root
 nomad_config_dir: "/etc/nomad.d/"
 
+nomad_install_dir: "/usr/bin"
+nomad_custom_binary_source: ""
+
 nomad_region: "global"
 nomad_data_dir: "/opt/nomad/data"
 nomad_log_level: "DEBUG"

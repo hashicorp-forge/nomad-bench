@@ -1,0 +1,8 @@
+build_apt_packages: [
+  "build-essential",
+  "git",
+  "make",
+]
+
+build_user: "ubuntu"
+build_nomad_local_code_path: ""

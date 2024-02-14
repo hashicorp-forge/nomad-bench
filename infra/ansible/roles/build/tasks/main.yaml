@@ -1,0 +1,45 @@
+- name: "install_packages"
+  become: true
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: "present"
+    update_cache: true
+  loop: "{{ build_apt_packages }}"
+
+- name: "synchronize_nomad_code"
+  block:
+  - name: "ensure_user_code_dir"
+    become: true
+    ansible.builtin.file:
+      path: "/home/{{ build_user }}"
+      state: directory
+      owner: "ubuntu"
+      group: "ubuntu"
+      mode: "0755"
+
+  - name: "synchronize_nomad_code"
+    ansible.posix.synchronize:
+      src: "{{ build_nomad_local_code_path }}"
+      dest: "/home/{{ build_user }}"
+      rsync_opts:
+        - "--exclude=.changelog"
+        - "--exclude=.github"
+        - "--exclude=.release"
+        - "--exclude=.semgrep"
+        - "--exclude=.tours"
+
+  - name: "build_nomad_binary"
+    shell: ". /etc/profile;make pkg/linux_amd64/nomad"
+    args:
+      chdir: "/home/{{ build_user }}/nomad"
+
+  - name: "fetch_nomad_compiled_binary"
+    ansible.builtin.fetch:
+      src: "/home/{{ build_user }}/nomad/pkg/linux_amd64/nomad"
+      dest: "{{ build_nomad_local_code_path }}/pkg/linux_amd64/nomad"
+      flat: yes
+
+  when: build_nomad_local_code_path != ""
+  tags:
+    - "never"
+    - "custom_build"

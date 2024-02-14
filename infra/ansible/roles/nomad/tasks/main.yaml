@@ -77,3 +77,28 @@
   ansible.builtin.include_tasks:
     file: tls.yaml
   when: nomad_tls_enable | bool
+
+- name: "nomad_custom_install"
+  become: true
+  block:
+    - name: "remove_nomad_package"
+      ansible.builtin.package:
+        name: "nomad"
+        state: absent
+    - name: "remove_nomad_binary"
+      ansible.builtin.file:
+        path: "{{ nomad_install_dir }}/nomad"
+        state: absent
+    - name: "copy_nomad_binary"
+      ansible.builtin.copy:
+        src: "{{  nomad_custom_binary_source }}"
+        dest: "{{ nomad_install_dir }}/nomad"
+        owner: root
+        group: root
+        mode: '0751'
+  when: nomad_custom_binary_source != ""
+  notify:
+    - "restart_nomad"
+  tags:
+    - "never"
+    - "custom_build"
