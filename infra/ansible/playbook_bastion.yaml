@@ -1,0 +1,13 @@
+- hosts: bastion
+  roles:
+    - role: common
+
+    - role: gantsign.golang
+      vars:
+        golang_gopath: "/home/{{ ansible_user_id }}/go"
+        golang_version: "1.21.7"
+        golang_redis_sha256sum: "13b76a9b2a26823e53062fa841b07087d48ae2ef2936445dc34c4ae03293702c"
+
+    - role: build
+      vars:
+        build_user: "{{ lookup('env', 'USER') }}"

@@ -28,6 +28,7 @@ module "bastion" {
 
   project_name         = var.project_name
   ami_id               = data.aws_ami.ubuntu.id
+  instance_type        = "m4.medium"
   security_group_ids   = [module.network.nomad_security_group_id]
   ssh_private_key_name = module.keys.key_name
   ssh_private_key_path = "${abspath(path.module)}/${module.keys.private_key_filepath}"
