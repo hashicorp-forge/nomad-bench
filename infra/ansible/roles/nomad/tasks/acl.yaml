@@ -29,7 +29,7 @@
   run_once: true
   ansible.builtin.copy:
     content: "{{ nomad_acl.stdout | from_json | json_query('SecretID') }}"
-    dest: "nomad_acl"
+    dest: "nomad-token"
   when: inventory_hostname in groups["server"]
   ignore_errors: true   # bootstrap ACL will only ever succeed once
   delegate_to: localhost
@@ -50,7 +50,7 @@
     NOMAD_CACERT: "{{ nomad_config_dir }}/tls/ca.pem"
     NOMAD_CLIENT_CERT: "{{ nomad_config_dir }}/tls/cli.pem"
     NOMAD_CLIENT_KEY: "{{ nomad_config_dir }}/tls/cli-key.pem"
-    NOMAD_TOKEN: "{{ nomad_acl.stdout | from_json | json_query('SecretID') }}"
+    NOMAD_TOKEN: "{{ nomad-token.stdout }}"
   ansible.builtin.command: "nomad acl policy \
    apply -description \"Anonymous policy (full-access)\" \ 
    anonymous /home/ubuntu/anonymous.policy.hcl" 
