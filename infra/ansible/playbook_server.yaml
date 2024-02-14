@@ -15,6 +15,7 @@
         nomad_cli_profile_enabled: true
         nomad_cli_tls_cert: "{{ lookup('file', '../terraform/control/{{ ansible_ec2_placement_region }}/{{ project_name }}/tls/{{ nomad_region }}-cli-nomad.pem') }}"
         nomad_cli_tls_cert_key: "{{ lookup('file', '../terraform/control/{{ ansible_ec2_placement_region }}/{{ project_name }}/tls/{{ nomad_region }}-cli-nomad-key.pem') }}"
+        nomad_acl_enabled: true
 
     - role: influxdb_telegraf
       vars:

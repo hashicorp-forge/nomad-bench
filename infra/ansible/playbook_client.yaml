@@ -28,3 +28,4 @@
           raw_exec:
             config:
               enabled: true
+        nomad_acl_enabled: true

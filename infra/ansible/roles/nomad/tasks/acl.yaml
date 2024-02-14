@@ -1,0 +1,58 @@
+- name: "write_acl_conf"
+  become: true
+  ansible.builtin.copy:
+    dest: "{{ nomad_config_dir }}/acl.hcl"
+    src: "acl.hcl"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0644"
+
+- name: "restart_nomad"
+  become: true
+  ansible.builtin.service:
+    name: nomad
+    state: restarted
+
+- name: "bootstrap_acl"
+  run_once: true
+  ansible.builtin.command: "nomad acl bootstrap -json"
+  environment: 
+    NOMAD_ADDR: "https://127.0.0.1:4646"
+    NOMAD_CACERT: "{{ nomad_config_dir }}/tls/ca.pem"
+    NOMAD_CLIENT_CERT: "{{ nomad_config_dir }}/tls/cli.pem"
+    NOMAD_CLIENT_KEY: "{{ nomad_config_dir }}/tls/cli-key.pem"
+  register: nomad_acl
+  when: inventory_hostname in groups["server"]
+  ignore_errors: true   # bootstrap ACL will only ever succeed once
+
+- name: "store_bootstrap_token"
+  run_once: true
+  ansible.builtin.copy:
+    content: "{{ nomad_acl.stdout | from_json | json_query('SecretID') }}"
+    dest: "nomad-token"
+  when: inventory_hostname in groups["server"]
+  ignore_errors: true   # bootstrap ACL will only ever succeed once
+  delegate_to: localhost
+
+- name: "write_anonymous_policy"
+  become: true
+  ansible.builtin.copy:
+    dest: "/home/ubuntu/anonymous.policy.hcl"
+    src: "anonymous.policy.hcl"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0644"
+  when: inventory_hostname in groups["server"]
+
+- name: "apply_acl_policy"
+  environment:
+    NOMAD_ADDR: "https://127.0.0.1:4646"
+    NOMAD_CACERT: "{{ nomad_config_dir }}/tls/ca.pem"
+    NOMAD_CLIENT_CERT: "{{ nomad_config_dir }}/tls/cli.pem"
+    NOMAD_CLIENT_KEY: "{{ nomad_config_dir }}/tls/cli-key.pem"
+    NOMAD_TOKEN: "{{ nomad-token.stdout }}"
+  ansible.builtin.command: "nomad acl policy \
+   apply -description \"Anonymous policy (full-access)\" \ 
+   anonymous /home/ubuntu/anonymous.policy.hcl" 
+  ignore_errors: true   # bootstrap ACL will only ever succeed once
+  when: inventory_hostname in groups["server"]
