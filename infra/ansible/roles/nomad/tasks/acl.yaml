@@ -29,7 +29,7 @@
   run_once: true
   ansible.builtin.copy:
     content: "{{ nomad_acl.stdout | from_json | json_query('SecretID') }}"
-    dest: "nomad_acl.json"
+    dest: "nomad_acl"
   when: inventory_hostname in groups["server"]
   ignore_errors: true   # bootstrap ACL will only ever succeed once
   delegate_to: localhost
