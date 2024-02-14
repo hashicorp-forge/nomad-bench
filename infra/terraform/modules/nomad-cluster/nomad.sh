@@ -6,9 +6,7 @@ apt -qq update && apt -qq install -y --no-install-recommends \
     podman \
     tzdata
 
-cat > /etc/nomad.d/nomad.hcl <<EOF
-${nomad_conf}
-EOF
+rm /etc/nomad.d/nomad.hcl
 
 systemctl daemon-reload
 systemctl enable nomad

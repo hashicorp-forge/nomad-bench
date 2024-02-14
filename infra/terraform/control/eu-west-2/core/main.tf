@@ -46,7 +46,7 @@ module "tls_certs" {
 module "core_cluster" {
   source = "../../../modules/nomad-cluster"
 
-  project_name         = "${var.project_name}-core"
+  project_name         = var.project_name
   server_instance_type = "t3.micro"
   client_count         = 1
   client_instance_type = "t3.micro"
