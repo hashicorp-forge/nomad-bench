@@ -1,0 +1,29 @@
+- hosts: server:client
+  gather_facts: false
+  tasks:
+    - block:
+        - name: "stop_nomad"
+          become: true
+          ansible.builtin.service:
+            name: "nomad"
+            state: "stopped"
+        - name: "delete_data_dir"
+          become: true
+          ansible.builtin.file:
+            path: "/opt/nomad/data"
+            state: "absent"
+        - name: "restart_nomad"
+          become: true
+          ansible.builtin.service:
+            name: "nomad"
+            state: "started"
+            enabled: true
+      tags:
+        - "nuke"
+        - "never"
+    - name: ""
+      ansible.builtin.fail:
+        msg: "This playbook deletes all Nomad state. Use --tags=nuke to confirm Nomad data deletion"
+      when: "'nuke' not in ansible_run_tags"
+      run_once: true
+      delegate_to: localhost

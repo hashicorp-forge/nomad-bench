@@ -43,3 +43,4 @@ nomad_cli_tls_cert: ""
 nomad_cli_tls_cert_key: ""
 
 nomad_acl_enabled: false
+nomad_acl_bootstrap_token_dest_path: "nomad-token"
