@@ -93,6 +93,10 @@ In order to connect to the Nomad cluster, you need to setup the following enviro
   export NOMAD_CLIENT_CERT="${var.tls_certs_root_path}/global-client-nomad.pem"
   export NOMAD_CLIENT_KEY="${var.tls_certs_root_path}/global-client-nomad-key.pem"
 
+Once Ansible finishes its run, the Nomad cluster will have ACLs enabled with a default read-only policy.
+In order to use the cluster, you can export the NOMAD_TOKEN variable pointing to the bootstrap token:
+  export NOMAD_TOKEN=$(cat ../../../../ansible/nomad-token)
+
 %{if var.nomad_lb_public_ip_address != ""~}
 If you are deploying InfluxDB to this cluster, the following command can be used to perform the
 initial job registration. Once the allocation has been started, the InfluxDB UI will be available
