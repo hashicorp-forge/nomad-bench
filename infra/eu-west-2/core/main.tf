@@ -17,14 +17,14 @@ data "aws_ami" "ubuntu" {
 }
 
 module "network" {
-  source = "../../../modules/nomad-network"
+  source = "../../../shared/terraform/modules/nomad-network"
 
   project_name     = var.project_name
   user_ingress_ips = [var.jrasell_ip, var.pkazmierczak_ip]
 }
 
 module "bastion" {
-  source = "../../../modules/bastion"
+  source = "../../../shared/terraform/modules/bastion"
 
   project_name         = var.project_name
   ami_id               = data.aws_ami.ubuntu.id
@@ -36,7 +36,7 @@ module "bastion" {
 }
 
 module "tls_certs" {
-  source = "../../../modules/nomad-tls"
+  source = "../../../shared/terraform/modules/nomad-tls"
 
   lb_ip           = module.core_cluster_lb.lb_public_ip
   client_ips      = join(" ", module.core_cluster.client_private_ips)
@@ -45,7 +45,7 @@ module "tls_certs" {
 }
 
 module "core_cluster" {
-  source = "../../../modules/nomad-cluster"
+  source = "../../../shared/terraform/modules/nomad-cluster"
 
   project_name         = var.project_name
   server_instance_type = "t3.micro"
@@ -58,7 +58,7 @@ module "core_cluster" {
 }
 
 module "core_cluster_lb" {
-  source = "../../../modules/nomad-lb"
+  source = "../../../shared/terraform/modules/nomad-lb"
 
   project_name                 = var.project_name
   subnet_ids                   = module.network.public_subnet_ids
@@ -71,7 +71,7 @@ module "core_cluster_lb" {
 }
 
 module "output" {
-  source = "../../../modules/nomad-output"
+  source = "../../../shared/terraform/modules/nomad-output"
 
   project_name                = var.project_name
   bastion_host_public_ip      = module.bastion.public_ip
@@ -79,6 +79,7 @@ module "output" {
   nomad_client_private_ips    = module.core_cluster.client_private_ips
   ssh_key_path                = abspath(module.keys.private_key_filepath)
   tls_certs_root_path         = "${path.cwd}/tls"
+  ansible_root_path           = "${path.cwd}/ansible"
   nomad_lb_public_ip_address  = module.core_cluster_lb.lb_public_ip
   nomad_lb_private_ip_address = module.core_cluster_lb.lb_private_ip
 }

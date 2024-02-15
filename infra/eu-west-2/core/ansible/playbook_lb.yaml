@@ -1,0 +1,9 @@
+- hosts: lb
+  roles:
+    - role: common
+
+    - role: nginx_lb
+      vars:
+        ca_cert: "{{ lookup('file', '../tls/nomad-agent-ca.pem') }}"
+        tls_cert: "{{ lookup('file', '../tls/{{ nomad_region }}-client-nomad.pem') }}"
+        tls_cert_key: "{{ lookup('file', '../tls/{{ nomad_region }}-client-nomad-key.pem') }}"
