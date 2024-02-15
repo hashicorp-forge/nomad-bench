@@ -1,0 +1,25 @@
+- hosts: server
+  roles:
+    - role: common
+
+    - role: nomad
+      vars:
+        nomad_server_enabled: true
+        nomad_server_join_retry_join: [ "provider=aws tag_key=Nomad_role tag_value={{ project_name }}_server" ]
+        nomad_limits_http_max_conns_per_client: 0
+        nomad_limits_rpc_max_conns_per_client: 0
+        nomad_tls_enable: true
+        nomad_tls_ca_cert: "{{ lookup('file', '../tls/nomad-agent-ca.pem') }}"
+        nomad_tls_cert: "{{ lookup('file', '../tls/{{ nomad_region }}-server-nomad.pem') }}"
+        nomad_tls_cert_key: "{{ lookup('file', '../tls/{{ nomad_region }}-server-nomad-key.pem') }}"
+        nomad_cli_profile_enabled: true
+        nomad_cli_tls_cert: "{{ lookup('file', '../tls/{{ nomad_region }}-cli-nomad.pem') }}"
+        nomad_cli_tls_cert_key: "{{ lookup('file', '../tls/{{ nomad_region }}-cli-nomad-key.pem') }}"
+        nomad_acl_enabled: true
+
+    - role: influxdb_telegraf
+      vars:
+        influxdb_telegraf_input_nomad_url: "https://127.0.0.1:4646"
+        influxdb_telegraf_input_nomad_tls_ca: "{{ nomad_config_dir }}tls/ca.pem"
+        influxdb_telegraf_output_token: "ZuXY8FXZL435F7TXeiA_UUOnx4cA4pCqDfsbYyW9O9eysFeR_5SmcNS8ZKb35FtG50ul4WIxAz9RksGt6fb1og=="
+        influxdb_telegraf_output_organization: "nomad-eng"

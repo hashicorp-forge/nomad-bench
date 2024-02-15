@@ -15,7 +15,7 @@ data "aws_ami" "ubuntu" {
 }
 
 module "jrasell_b20b731" {
-  source = "../../../modules/nomad-cluster"
+  source = "../../../shared/terraform/modules/nomad-cluster"
 
   project_name    = var.project_name
   ami             = data.aws_ami.ubuntu.id
@@ -28,7 +28,7 @@ module "jrasell_b20b731" {
 }
 
 module "tls_certs" {
-  source = "../../../modules/nomad-tls"
+  source = "../../../shared/terraform/modules/nomad-tls"
 
   lb_ip           = var.bastion_ip
   client_ips      = join(" ", module.jrasell_b20b731.client_private_ips)
@@ -37,18 +37,19 @@ module "tls_certs" {
 }
 
 module "bootstrap" {
-  source = "../../../modules/test-bench-bootstrap"
+  source = "../../../shared/terraform/modules/test-bench-bootstrap"
 
   project_name = var.project_name
 }
 
 module "output" {
-  source = "../../../modules/nomad-output"
+  source = "../../../shared/terraform/modules/nomad-output"
 
   project_name                = var.project_name
   bastion_host_public_ip      = var.bastion_ip
   nomad_server_private_ips    = module.jrasell_b20b731.server_private_ips
   ssh_key_path                = var.ssh_key_path
   tls_certs_root_path         = "${path.cwd}/tls"
+  ansible_root_path           = "${path.cwd}/ansible"
   nomad_lb_private_ip_address = data.aws_instance.lb.private_ip
 }

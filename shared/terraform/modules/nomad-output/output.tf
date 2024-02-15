@@ -78,11 +78,12 @@ Open SSH tunnel to Nomad:
 
 In order to provision the cluster, you can run the following command which will trigger the Ansible
 playbooks:
-  cd ../../../../ansible && \
-    ansible-playbook -i ./${var.project_name}_inventory.ini ./playbook_bastion.yaml && \
-    ansible-playbook -i ./${var.project_name}_inventory.ini ./playbook_server.yaml && \
-    ansible-playbook -i ./${var.project_name}_inventory.ini ./playbook_client.yaml && \
-    ansible-playbook -i ./${var.project_name}_inventory.ini ./playbook_lb.yaml
+  cd ./ansible && \
+    ansible-playbook ./playbook_bastion.yaml && \
+    ansible-playbook ./playbook_server.yaml && \
+    ansible-playbook ./playbook_client.yaml && \
+    ansible-playbook ./playbook_lb.yaml && \
+    cd ..
 
 CA, Certs, and Keys for Nomad have been provisioned here:
   ${var.tls_certs_root_path}/
@@ -102,7 +103,7 @@ If you are deploying InfluxDB to this cluster, the following command can be used
 initial job registration. Once the allocation has been started, the InfluxDB UI will be available
 at http://${var.nomad_lb_public_ip_address}:8086. If you need to customize the job via the available
 variables, please check the job specificaiton.
-  nomad run -address=https://${var.nomad_lb_public_ip_address}:443 -var='influxdb_bucket_name=${var.project_name}' ../../../../jobs/influxdb.nomad.hcl
+  nomad run -var='influxdb_bucket_name=${var.project_name}' ../../../shared/nomad/jobs/influxdb.nomad.hcl
 %{endif}
 
 If you are using this environment to test development changes of Nomad, the Ansible scripts include
@@ -113,12 +114,16 @@ To sync your local code with the remote host and build a development binary, you
 following Ansible command. You will need to replace the path to the Nomad code, so that it matches
 your own setup. The code will be sync'd to the bastion host at "/home/{USER}/nomad" where {USER} is
 the username from your local workstation.
-  ansible-playbook -i ./${var.project_name}_inventory.ini ./playbook_bastion.yaml --extra-vars "build_nomad_local_code_path=/Users/jrasell/Projects/Go/nomad" --tags "never,custom_build"
+  cd ./ansible && \
+    ansible-playbook ./playbook_bastion.yaml --extra-vars "build_nomad_local_code_path=/Users/jrasell/Projects/Go/nomad" --tags "never,custom_build" && \
+    cd ..
 
 Once the custom binary has been complied and fetched into your local Nomad repository, you can run
 the following Ansible command to trigger a deployment. You will need to replace the path to the
 Nomad binary, so that it matches your own setup. You can also trigger "playbook_client.yaml" if you
 wish to also update the Nomad clients.
-  ansible-playbook -i ./${var.project_name}_inventory.ini ./playbook_server.yaml --extra-vars "nomad_custom_binary_source=/Users/jrasell/Projects/Go/nomad/pkg/linux_amd64/nomad" --tags "never,custom_build"
+  cd ./ansible && \
+    ansible-playbook ./playbook_server.yaml --extra-vars "nomad_custom_binary_source=/Users/jrasell/Projects/Go/nomad/pkg/linux_amd64/nomad" --tags "never,custom_build" && \
+    cd ..
 EOM
 }
