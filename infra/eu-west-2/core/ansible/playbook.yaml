@@ -1,0 +1,4 @@
+- ansible.builtin.import_playbook: "playbook_bastion.yaml"
+- ansible.builtin.import_playbook: "playbook_server.yaml"
+- ansible.builtin.import_playbook: "playbook_client.yaml"
+- ansible.builtin.import_playbook: "playbook_lb.yaml"
