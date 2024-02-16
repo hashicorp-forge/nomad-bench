@@ -8,9 +8,5 @@ terraform.tfstate.backup
 keys/
 tls/
 
-# Generated Ansible inventory files.
-inventory.ini
-*_inventory.ini
-
 # Python virtual environment.
 .venv

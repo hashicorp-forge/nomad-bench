@@ -7,3 +7,6 @@
         ca_cert: "{{ lookup('file', '../tls/nomad-agent-ca.pem') }}"
         tls_cert: "{{ lookup('file', '../tls/{{ nomad_region }}-client-nomad.pem') }}"
         tls_cert_key: "{{ lookup('file', '../tls/{{ nomad_region }}-client-nomad-key.pem') }}"
+        # Hack to make the Terraform dynamic inventory plugin work with complex types.
+        server_ips: "{{ server_ips_json | ansible.builtin.from_json }}"
+        client_ips: "{{ server_ips_json | ansible.builtin.from_json }}"
