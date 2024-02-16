@@ -78,12 +78,7 @@ Open SSH tunnel to Nomad:
 
 In order to provision the cluster, you can run the following command which will trigger the Ansible
 playbooks:
-  cd ./ansible && \
-    ansible-playbook ./playbook_bastion.yaml && \
-    ansible-playbook ./playbook_server.yaml && \
-    ansible-playbook ./playbook_client.yaml && \
-    ansible-playbook ./playbook_lb.yaml && \
-    cd ..
+  cd ./ansible && ansible-playbook ./playbook.yaml && cd ..
 
 CA, Certs, and Keys for Nomad have been provisioned here:
   ${var.tls_certs_root_path}/
