@@ -20,3 +20,7 @@ telemetry {
   publish_node_metrics       = {{ nomad_telemetry_publish_node_metrics | lower }}
   prometheus_metrics         = {{ nomad_telemetry_prometheus_metrics | lower }}
 }
+
+acl {
+  enabled = {{ nomad_acl_enabled | lower }}
+}

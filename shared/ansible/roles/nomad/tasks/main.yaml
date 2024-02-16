@@ -103,7 +103,9 @@
     - "never"
     - "custom_build"
 
-- name: "acl"
-  ansible.builtin.include_tasks:
-    file: acl.yaml
-  when: nomad_acl_enabled is true
+- name: "acl_bootstrap"
+  ansible.builtin.import_tasks:
+    file: acl_bootstrap.yaml
+  tags:
+    - acl_bootstrap
+    - never
