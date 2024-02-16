@@ -5,6 +5,16 @@ locals {
     var.lgfa29_ip
   ]
   allowed_cidrs = [for ip in local.allowed_ips : "${ip}/32"]
+
+  ansible_default_vars = {
+    ansible_user                 = "ubuntu"
+    ansible_ssh_private_key_file = abspath(module.keys.private_key_filepath)
+    ansible_ssh_common_args      = <<EOT
+-o StrictHostKeyChecking=no
+-o IdentitiesOnly=yes
+-o ProxyCommand="ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i '${abspath(module.keys.private_key_filepath)}' -W %h:%p -q ubuntu@${module.bastion.public_ip}"
+EOT
+  }
 }
 
 module "keys" {
@@ -32,18 +42,6 @@ module "network" {
   user_ingress_ips = local.allowed_cidrs
 }
 
-module "bastion" {
-  source = "../../../shared/terraform/modules/bastion"
-
-  project_name         = var.project_name
-  ami_id               = data.aws_ami.ubuntu.id
-  instance_type        = "m5.large"
-  security_group_ids   = [module.network.nomad_security_group_id]
-  ssh_private_key_name = module.keys.key_name
-  ssh_private_key_path = "${abspath(path.module)}/${module.keys.private_key_filepath}"
-  subnet_id            = element(module.network.public_subnet_ids, 0)
-}
-
 module "tls_certs" {
   source = "../../../shared/terraform/modules/nomad-tls"
 
@@ -66,29 +64,32 @@ module "core_cluster" {
   security_groups      = [module.network.nomad_security_group_id]
 }
 
-module "core_cluster_lb" {
-  source = "../../../shared/terraform/modules/nomad-lb"
+resource "ansible_group" "server" {
+  name      = "server"
+  children  = [module.core_cluster.ansible_group_server]
+  variables = local.ansible_default_vars
+}
 
-  project_name                 = var.project_name
-  subnet_ids                   = module.network.public_subnet_ids
-  vpc_cidr_block               = module.network.vpc_cidr_block
-  vpc_id                       = module.network.vpc_id
-  user_ingress_ips             = local.allowed_cidrs
-  ami                          = data.aws_ami.ubuntu.id
-  key_name                     = module.keys.key_name
-  nomad_nginx_lb_instance_type = "t3.micro"
+resource "ansible_group" "client" {
+  name      = "client"
+  children  = [module.core_cluster.ansible_group_client]
+  variables = local.ansible_default_vars
+}
+
+resource "ansible_group" "all" {
+  name = "all"
+  variables = {
+    project_name                       = var.project_name
+    influxdb_telegraf_output_bucket    = var.project_name
+    influxdb_telegraf_output_urls_json = jsonencode([module.core_cluster_lb.lb_private_ip])
+  }
 }
 
 module "output" {
   source = "../../../shared/terraform/modules/nomad-output"
 
-  project_name                = var.project_name
-  bastion_host_public_ip      = module.bastion.public_ip
-  nomad_server_private_ips    = module.core_cluster.server_private_ips
-  nomad_client_private_ips    = module.core_cluster.client_private_ips
-  ssh_key_path                = abspath(module.keys.private_key_filepath)
-  tls_certs_root_path         = "${path.cwd}/tls"
-  ansible_root_path           = "${path.cwd}/ansible"
-  nomad_lb_public_ip_address  = module.core_cluster_lb.lb_public_ip
-  nomad_lb_private_ip_address = module.core_cluster_lb.lb_private_ip
+  project_name               = var.project_name
+  bastion_host_public_ip     = module.bastion.public_ip
+  tls_certs_root_path        = "${path.cwd}/tls"
+  nomad_lb_public_ip_address = module.core_cluster_lb.lb_public_ip
 }

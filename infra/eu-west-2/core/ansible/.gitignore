@@ -1,7 +1,2 @@
-# Generated Ansible inventory files.
-*_inventory.ini
-
-# Python virtual environment.
-.venv
-
+# Nomad bootstrap token.
 nomad-token
