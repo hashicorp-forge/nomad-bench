@@ -1,5 +1,0 @@
-ca_cert: ""
-tls_cert: ""
-tls_cert_key: ""
-server_ips: [ ]
-client_ips: [ ]
