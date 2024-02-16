@@ -1,3 +1,12 @@
+locals {
+  allowed_ips = [
+    var.jrasell_ip,
+    var.pkazmierczak_ip,
+    var.lgfa29_ip
+  ]
+  allowed_cidrs = [for ip in local.allowed_ips : "${ip}/32"]
+}
+
 module "keys" {
   source  = "mitchellh/dynamic-keys/aws"
   version = "v2.0.0"
@@ -20,7 +29,7 @@ module "network" {
   source = "../../../shared/terraform/modules/nomad-network"
 
   project_name     = var.project_name
-  user_ingress_ips = [var.jrasell_ip, var.pkazmierczak_ip]
+  user_ingress_ips = local.allowed_cidrs
 }
 
 module "bastion" {
@@ -64,7 +73,7 @@ module "core_cluster_lb" {
   subnet_ids                   = module.network.public_subnet_ids
   vpc_cidr_block               = module.network.vpc_cidr_block
   vpc_id                       = module.network.vpc_id
-  user_ingress_ips             = [var.jrasell_ip, var.pkazmierczak_ip]
+  user_ingress_ips             = local.allowed_cidrs
   ami                          = data.aws_ami.ubuntu.id
   key_name                     = module.keys.key_name
   nomad_nginx_lb_instance_type = "t3.micro"
