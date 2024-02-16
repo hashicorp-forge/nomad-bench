@@ -17,7 +17,10 @@ Open SSH tunnel to Nomad:
 
 In order to provision the cluster, you can run the following command which will trigger the Ansible
 playbooks:
-  cd ./ansible && ansible-playbook ./playbook.yaml && cd ..
+  ansible-playbook ./ansible/playbook.yaml
+
+If ACL is enabled, you can run the following command to bootstrap the ACL system.
+  ansible-playbook --tags=acl_bootstrap ./ansible/playbook_server.yaml
 
 CA, Certs, and Keys for Nomad have been provisioned here:
   ${var.tls_certs_root_path}/
@@ -30,7 +33,7 @@ In order to connect to the Nomad cluster, you need to setup the following enviro
 
 Once Ansible finishes its run, the Nomad cluster will have ACLs enabled with a default read-only policy.
 In order to use the cluster, you can export the NOMAD_TOKEN variable pointing to the bootstrap token:
-  export NOMAD_TOKEN=$(cat ../../../../ansible/nomad-token)
+  export NOMAD_TOKEN=$(cat ./ansible/nomad-token)
 
 %{if var.nomad_lb_public_ip_address != ""~}
 If you are deploying InfluxDB to this cluster, the following command can be used to perform the
@@ -48,16 +51,12 @@ To sync your local code with the remote host and build a development binary, you
 following Ansible command. You will need to replace the path to the Nomad code, so that it matches
 your own setup. The code will be sync'd to the bastion host at "/home/{USER}/nomad" where {USER} is
 the username from your local workstation.
-  cd ./ansible && \
-    ansible-playbook ./playbook_bastion.yaml --extra-vars "build_nomad_local_code_path=/Users/jrasell/Projects/Go/nomad" --tags "never,custom_build" && \
-    cd ..
+  ansible-playbook --extra-vars "build_nomad_local_code_path=/Users/jrasell/Projects/Go/nomad" --tags=custom_build ./ansible/playbook_bastion.yaml
 
 Once the custom binary has been complied and fetched into your local Nomad repository, you can run
 the following Ansible command to trigger a deployment. You will need to replace the path to the
 Nomad binary, so that it matches your own setup. You can also trigger "playbook_client.yaml" if you
 wish to also update the Nomad clients.
-  cd ./ansible && \
-    ansible-playbook ./playbook_server.yaml --extra-vars "nomad_custom_binary_source=/Users/jrasell/Projects/Go/nomad/pkg/linux_amd64/nomad" --tags "never,custom_build" && \
-    cd ..
+  ansible-playbook --extra-vars "nomad_custom_binary_source=/Users/jrasell/Projects/Go/nomad/pkg/linux_amd64/nomad" --tags=custom_build ./ansible/playbook_server.yaml
 EOM
 }
