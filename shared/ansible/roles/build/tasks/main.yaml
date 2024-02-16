@@ -28,6 +28,11 @@
         - "--exclude=.semgrep"
         - "--exclude=.tours"
 
+  - name: "remove_nomad_binary"
+    ansible.builtin.file:
+      path:  "/home/{{ build_user }}/nomad/pkg/linux_amd64/nomad"
+      state: "absent"
+
   - name: "build_nomad_binary"
     shell: ". /etc/profile;make pkg/linux_amd64/nomad"
     args:
