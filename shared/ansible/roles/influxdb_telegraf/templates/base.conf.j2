@@ -1,6 +1,8 @@
 [[inputs.nomad]]
 url    = "{{ influxdb_telegraf_input_nomad_url }}"
+{% if influxdb_telegraf_input_nomad_tls_ca != "" %}
 tls_ca = "{{ influxdb_telegraf_input_nomad_tls_ca }}"
+{% endif %}
 
 [[outputs.influxdb_v2]]
 urls         = {{ influxdb_telegraf_output_urls }}
