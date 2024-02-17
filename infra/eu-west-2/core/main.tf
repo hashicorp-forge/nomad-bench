@@ -79,9 +79,8 @@ resource "ansible_group" "client" {
 resource "ansible_group" "all" {
   name = "all"
   variables = {
-    project_name                       = var.project_name
-    influxdb_telegraf_output_bucket    = var.project_name
-    influxdb_telegraf_output_urls_json = jsonencode([module.core_cluster_lb.lb_private_ip])
+    terraform_project_name                       = var.project_name
+    terraform_influxdb_telegraf_output_urls_json = jsonencode(formatlist("http://%s:8086", [module.core_cluster_lb.lb_private_ip]))
   }
 }
 

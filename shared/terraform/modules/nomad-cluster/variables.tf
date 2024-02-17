@@ -28,6 +28,11 @@ variable "server_count" {
   description = "The number of servers to provision."
   type        = number
   default     = "3"
+
+  validation {
+    condition     = var.server_count >= 1
+    error_message = "A Nomad cluster must have at least one server."
+  }
 }
 
 variable "server_instance_type" {
@@ -58,4 +63,14 @@ variable "client_iops" {
   description = "iops for the root block device of the nomad clients"
   type        = string
   default     = "3600"
+}
+
+variable "ansible_server_group_vars" {
+  type    = map(string)
+  default = {}
+}
+
+variable "ansible_client_group_vars" {
+  type    = map(string)
+  default = {}
 }

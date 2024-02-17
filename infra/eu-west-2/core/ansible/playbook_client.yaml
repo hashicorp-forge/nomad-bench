@@ -10,13 +10,13 @@
     - role: nomad
       vars:
         nomad_client_enabled: true
-        nomad_server_join_retry_join: [ "provider=aws tag_key=Nomad_role tag_value={{ project_name }}_server" ]
+        nomad_server_join_retry_join: ["{{ terraform_nomad_server_join }}"]
         nomad_telemetry_publish_allocation_metrics: true
         nomad_telemetry_publish_node_metrics: true
         nomad_tls_enable: true
         nomad_tls_ca_cert: "{{ lookup('file', '../tls/nomad-agent-ca.pem') }}"
-        nomad_tls_cert: "{{ lookup('file', '../tls/{{ nomad_region }}-client-nomad.pem') }}"
-        nomad_tls_cert_key: "{{ lookup('file', '../tls/{{ nomad_region }}-client-nomad-key.pem') }}"
+        nomad_tls_cert: "{{ lookup('file', '../tls/global-client-nomad.pem') }}"
+        nomad_tls_cert_key: "{{ lookup('file', '../tls/global-client-nomad-key.pem') }}"
         nomad_host_volumes:
           - name: influxdb
             path: /opt/influxdb
