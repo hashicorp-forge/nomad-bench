@@ -5,8 +5,8 @@
     - role: nomad_lb
       vars:
         nomad_lb_ca_cert: "{{ lookup('file', '../tls/nomad-agent-ca.pem') }}"
-        nomad_lb_tls_cert: "{{ lookup('file', '../tls/{{ nomad_region }}-client-nomad.pem') }}"
-        nomad_lb_tls_cert_key: "{{ lookup('file', '../tls/{{ nomad_region }}-client-nomad-key.pem') }}"
+        nomad_lb_tls_cert: "{{ lookup('file', '../tls/global-client-nomad.pem') }}"
+        nomad_lb_tls_cert_key: "{{ lookup('file', '../tls/global-client-nomad-key.pem') }}"
         # Hack to make the Terraform dynamic inventory plugin work with complex types.
-        nomad_lb_server_ips: "{{ nomad_lb_server_ips_json | ansible.builtin.from_json }}"
-        nomad_lb_client_ips: "{{ nomad_lb_client_ips_json | ansible.builtin.from_json }}"
+        nomad_lb_server_ips: "{{ terraform_server_ips_json | ansible.builtin.from_json }}"
+        nomad_lb_client_ips: "{{ terraform_client_ips_json | ansible.builtin.from_json }}"
