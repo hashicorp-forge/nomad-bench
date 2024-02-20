@@ -14,9 +14,9 @@ module "core_cluster_lb" {
 resource "ansible_group" "lb" {
   name = "lb"
   variables = merge(local.ansible_default_vars, {
-    ansible_ssh_common_args = "-o StrictHostKeyChecking=no -o IdentitiesOnly=yes"
-    server_ips_json         = jsonencode(module.core_cluster.server_private_ips)
-    client_ips_json         = jsonencode(module.core_cluster.client_private_ips)
+    ansible_ssh_common_args  = "-o StrictHostKeyChecking=no -o IdentitiesOnly=yes"
+    nomad_lb_server_ips_json = jsonencode(module.core_cluster.server_private_ips)
+    nomad_lb_client_ips_json = jsonencode(module.core_cluster.client_private_ips)
   })
 }
 
