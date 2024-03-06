@@ -3,6 +3,7 @@
   ansible.builtin.apt:
     name: "nginx={{ nomad_lb_nginx_apt_version }}"
     state: "present"
+    update_cache: true
 
 - name: "write_tls_files"
   become: true
@@ -19,6 +20,8 @@
       content: "{{ nomad_lb_tls_cert_key }}"
     - dest: "/etc/nginx/ca-certs.pem"
       content: "{{ nomad_lb_ca_cert }}"
+  notify:
+    - "restart_nginx"
 
 - name: "create_nginx_config"
   become: true
