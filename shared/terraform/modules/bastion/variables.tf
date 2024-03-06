@@ -29,8 +29,3 @@ variable "ssh_private_key_name" {
   description = "The name of the SSH keypair in AWS."
   type        = string
 }
-
-variable "ssh_private_key_path" {
-  description = "The local path to the SSH private key."
-  type        = string
-}

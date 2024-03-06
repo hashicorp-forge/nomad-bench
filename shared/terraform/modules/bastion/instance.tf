@@ -6,18 +6,6 @@ resource "aws_instance" "bastion" {
   key_name                    = var.ssh_private_key_name
   associate_public_ip_address = true
 
-  provisioner "file" {
-    source      = var.ssh_private_key_path
-    destination = "/home/ubuntu/nomad-hosts-key.pem"
-  }
-
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file(var.ssh_private_key_path)
-    host        = self.public_ip
-  }
-
   root_block_device {
     volume_size = 10
   }

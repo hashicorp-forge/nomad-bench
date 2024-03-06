@@ -13,6 +13,7 @@ To run this project you needs the following tools installed in your machined:
 * [Terraform][terraform_install]
 * [Python][python_install]
 * [Ansible][ansible_install]
+* `make`
 
 ### (Optional) Create a Python virtual environment
 
@@ -38,12 +39,24 @@ make deps
 
 ### Provision core infrastructure
 
+Login to Terraform Cloud.
+
+```console
+terraform login
+```
+
 Run Terraform from the `./infra/eu-west-2/core` directory.
 
 ```console
 cd ./infra/eu-west-2/core
 terraform init
 terraform apply
+```
+
+Extract mTLS and SSH materials from the Terraform state.
+
+```console
+make
 ```
 
 Once the infrastructure is provisioned, run Ansible to configure it.
