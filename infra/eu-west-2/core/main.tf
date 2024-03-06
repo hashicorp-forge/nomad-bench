@@ -55,9 +55,10 @@ module "core_cluster" {
   source = "../../../shared/terraform/modules/nomad-cluster"
 
   project_name         = var.project_name
-  server_instance_type = "t3.micro"
-  client_count         = 1
-  client_instance_type = "t3.micro"
+  server_count         = 1
+  server_instance_type = "t3.medium"
+  client_count         = 2
+  client_instance_type = "t3.small"
   ami                  = data.aws_ami.ubuntu.id
   subnet_ids           = module.network.private_subnet_ids
   key_name             = module.ssh.key_name
