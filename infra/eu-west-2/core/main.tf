@@ -42,13 +42,12 @@ module "network" {
   user_ingress_ips = local.allowed_cidrs
 }
 
-module "tls_certs" {
+module "tls" {
   source = "../../../shared/terraform/modules/nomad-tls"
 
-  lb_ip           = module.core_cluster_lb.lb_public_ip
-  client_ips      = join(" ", module.core_cluster.client_private_ips)
-  server_ips      = join(" ", module.core_cluster.server_private_ips)
-  tls_output_path = "${path.cwd}/tls"
+  lb_ips     = [module.core_cluster_lb.lb_public_ip]
+  client_ips = module.core_cluster.client_private_ips
+  server_ips = module.core_cluster.server_private_ips
 }
 
 module "core_cluster" {

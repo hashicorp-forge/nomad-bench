@@ -1,19 +1,29 @@
-variable "tls_output_path" {
-  description = "The path in which to place generated TLS certificates."
+variable "region" {
+  description = "The Noamd region where the certificates will be used."
   type        = string
+  default     = "global"
 }
 
-variable "lb_ip" {
-  description = "The IP address of the load balancer."
-  type        = string
+variable "lb_ips" {
+  description = "The IP addresses of the load balancers."
+  type        = list(string)
+  default     = []
 }
 
 variable "client_ips" {
-  description = "The string containing space-separated client IPs"
-  type        = string
+  description = "The IP addresses of the clients."
+  type        = list(string)
+  default     = []
 }
 
 variable "server_ips" {
-  description = "The string containing space-separated server IPs"
-  type        = string
+  description = "The IP addresses of the servers."
+  type        = list(string)
+  default     = []
+}
+
+variable "dns_names" {
+  description = "The list of additional DNS names."
+  type        = list(string)
+  default     = []
 }

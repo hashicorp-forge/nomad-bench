@@ -1,11 +1,19 @@
-output "ca_cert_path" {
-  value = "${var.tls_output_path}/nomad-agent-ca.pem"
+output "ca_key" {
+  value     = tls_private_key.ca.private_key_pem
+  sensitive = true
 }
 
-output "nomad_client_cert_path" {
-  value = "${var.tls_output_path}/global-client-nomad.pem"
+output "ca_cert" {
+  value     = tls_self_signed_cert.ca.cert_pem
+  sensitive = true
 }
 
-output "nomad_client_key_path" {
-  value = "${var.tls_output_path}/global-client-nomad-key.pem"
+output "certs" {
+  value     = { for k, v in tls_locally_signed_cert.certs : k => v.cert_pem }
+  sensitive = true
+}
+
+output "keys" {
+  value     = { for k, v in tls_private_key.keys : k => v.private_key_pem }
+  sensitive = true
 }
