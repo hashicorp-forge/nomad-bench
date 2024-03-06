@@ -6,23 +6,23 @@ locals {
   ]
   allowed_cidrs = [for ip in local.allowed_ips : "${ip}/32"]
 
+  ansible_ssh_private_key_file = "../keys${module.ssh.private_key_filepath}"
   ansible_default_vars = {
     ansible_user                 = "ubuntu"
-    ansible_ssh_private_key_file = abspath(module.keys.private_key_filepath)
+    ansible_ssh_private_key_file = local.ansible_ssh_private_key_file
     ansible_ssh_common_args      = <<EOT
 -o StrictHostKeyChecking=no
 -o IdentitiesOnly=yes
--o ProxyCommand="ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i '${abspath(module.keys.private_key_filepath)}' -W %h:%p -q ubuntu@${module.bastion.public_ip}"
+-o ProxyCommand="ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i '${local.ansible_ssh_private_key_file}' -W %h:%p -q ubuntu@${module.bastion.public_ip}"
 EOT
   }
 }
 
-module "keys" {
+module "ssh" {
   source  = "mitchellh/dynamic-keys/aws"
   version = "v2.0.0"
 
   name = var.project_name
-  path = "${path.root}/keys"
 }
 
 data "aws_ami" "ubuntu" {
@@ -59,7 +59,7 @@ module "core_cluster" {
   client_instance_type = "t3.micro"
   ami                  = data.aws_ami.ubuntu.id
   subnet_ids           = module.network.private_subnet_ids
-  key_name             = module.keys.key_name
+  key_name             = module.ssh.key_name
   security_groups      = [module.network.nomad_security_group_id]
 }
 
