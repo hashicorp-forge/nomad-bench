@@ -1,0 +1,5 @@
+shared/ansible/
+tools/
+.terraform/
+keys/
+tls/

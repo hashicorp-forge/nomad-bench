@@ -39,6 +39,12 @@ make deps
 
 ### Provision core infrastructure
 
+Login to Terraform Cloud.
+
+```console
+terraform login
+```
+
 Run Terraform from the `./infra/eu-west-2/core` directory.
 
 ```console

@@ -46,3 +46,7 @@ output "cli_key" {
   value     = module.tls.keys.cli
   sensitive = true
 }
+
+output "dns_ns" {
+  value = aws_route53_zone.nomad_bench.name_servers
+}
