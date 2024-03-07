@@ -1,8 +1,8 @@
 [[inputs.nomad]]
-url    = "{{ influxdb_telegraf_input_nomad_url }}"
-{% if influxdb_telegraf_input_nomad_tls_ca != "" %}
-tls_ca = "{{ influxdb_telegraf_input_nomad_tls_ca }}"
-{% endif %}
+  url    = "{{ influxdb_telegraf_input_nomad_url }}"
+  {% if influxdb_telegraf_input_nomad_tls_ca != "" %}
+  tls_ca = "{{ influxdb_telegraf_input_nomad_tls_ca }}"
+  {% endif %}
 
 [[outputs.influxdb_v2]]
   urls                 = {{ influxdb_telegraf_output_urls }}
@@ -14,9 +14,12 @@ tls_ca = "{{ influxdb_telegraf_input_nomad_tls_ca }}"
 [[inputs.mem]]
 
 [[inputs.cpu]]
-collect_cpu_time = true
-report_active    = true
-core_tags        = true
+  collect_cpu_time = true
+  report_active    = true
+  core_tags        = true
+
+[[inputs.disk]]
+  ignore_fs = ["tmpfs", "devtmpfs", "nsfs", "overlay"]
 
 [[inputs.diskio]]
 
