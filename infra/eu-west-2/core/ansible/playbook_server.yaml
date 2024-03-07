@@ -22,7 +22,7 @@
       vars:
         influxdb_telegraf_input_nomad_url: "https://127.0.0.1:4646"
         influxdb_telegraf_input_nomad_tls_ca: "{{ nomad_config_dir }}tls/ca.pem"
-        influxdb_telegraf_output_token: "ZuXY8FXZL435F7TXeiA_UUOnx4cA4pCqDfsbYyW9O9eysFeR_5SmcNS8ZKb35FtG50ul4WIxAz9RksGt6fb1og=="
+        influxdb_telegraf_output_token: "{{ terraform_influxdb_token }}"
         influxdb_telegraf_output_organization: "nomad-eng"
         influxdb_telegraf_output_bucket: "{{ terraform_project_name }}"
         # Hack to make the Terraform dynamic inventory plugin work with complex types.

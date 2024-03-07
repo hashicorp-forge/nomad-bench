@@ -39,3 +39,20 @@ resource "nomad_csi_volume_registration" "influxdb" {
     }
   }
 }
+
+resource "random_password" "influxdb_admin_password" {
+  length  = 32
+  special = true
+}
+
+resource "nomad_variable" "influxdb" {
+  path = "nomad/jobs/influxdb"
+  items = {
+    admin_password = random_password.influxdb_admin_password.result
+    admin_token    = data.terraform_remote_state.core.outputs.influxdb_token
+  }
+}
+
+resource "nomad_job" "influxdb" {
+  jobspec = file("${path.module}/../../../shared/nomad/jobs/influxdb.nomad.hcl")
+}

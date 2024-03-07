@@ -51,6 +51,21 @@ module "tls" {
   dns_names  = [aws_route53_record.nomad_bench.name]
 }
 
+# There is a small chicken and egg problem that requires us to pre-generate an
+# InfluxDB token for Telegraf. This token is set in the Telegraf config when
+# Nomad is being provisioned, so we need to know it before running the InfluxDB
+# job.
+resource "random_password" "influxdb_token" {
+  length  = 88
+  special = true
+
+  # This value is used for initial setup only, and should not be modified.
+  # Changes here DO NOT affect the running system.
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 module "core_cluster" {
   source = "../../../shared/terraform/modules/nomad-cluster"
 
@@ -82,6 +97,7 @@ resource "ansible_group" "all" {
   variables = {
     terraform_project_name                       = var.project_name
     terraform_influxdb_telegraf_output_urls_json = jsonencode(formatlist("http://%s:8086", [module.core_cluster_lb.lb_private_ip]))
+    terraform_influxdb_token                     = random_password.influxdb_token.result
   }
 }
 
