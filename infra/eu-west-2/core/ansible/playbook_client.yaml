@@ -29,3 +29,13 @@
             config:
               enabled: true
         nomad_acl_enabled: true
+
+    - role: influxdb_telegraf
+      vars:
+        influxdb_telegraf_input_nomad_url: "https://127.0.0.1:4646"
+        influxdb_telegraf_input_nomad_tls_ca: "{{ nomad_config_dir }}tls/ca.pem"
+        influxdb_telegraf_output_token: "{{ terraform_influxdb_token }}"
+        influxdb_telegraf_output_organization: "nomad-eng"
+        influxdb_telegraf_output_bucket: "{{ terraform_project_name }}"
+        # Hack to make the Terraform dynamic inventory plugin work with complex types.
+        influxdb_telegraf_output_urls: "{{ terraform_influxdb_telegraf_output_urls_json | ansible.builtin.from_json }}"
