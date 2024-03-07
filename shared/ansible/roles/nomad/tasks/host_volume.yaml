@@ -19,3 +19,12 @@
   when: nomad_host_volumes | length > 0
   notify:
     - "restart_nomad"
+
+- name: "remove_host_volume_config"
+  become: true
+  ansible.builtin.file:
+    path: "{{ nomad_config_dir }}/host_volume.hcl"
+    state: "absent"
+  when: nomad_host_volumes | length == 0
+  notify:
+    - "restart_nomad"

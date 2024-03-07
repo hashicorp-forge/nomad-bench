@@ -17,10 +17,6 @@
         nomad_tls_ca_cert: "{{ lookup('file', '../tls/nomad-agent-ca.pem') }}"
         nomad_tls_cert: "{{ lookup('file', '../tls/global-client-nomad.pem') }}"
         nomad_tls_cert_key: "{{ lookup('file', '../tls/global-client-nomad-key.pem') }}"
-        nomad_host_volumes:
-          - name: influxdb
-            path: /opt/influxdb
-            read_only: false
         nomad_plugins:
           docker:
             config:
