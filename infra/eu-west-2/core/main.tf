@@ -96,7 +96,7 @@ resource "ansible_group" "all" {
   name = "all"
   variables = {
     terraform_project_name                       = var.project_name
-    terraform_influxdb_telegraf_output_urls_json = jsonencode(formatlist("http://%s:8086", [module.core_cluster_lb.lb_private_ip]))
+    terraform_influxdb_telegraf_output_urls_json = jsonencode(formatlist("https://%s:8086", [module.core_cluster_lb.lb_private_ip]))
     terraform_influxdb_token                     = random_password.influxdb_token.result
   }
 }

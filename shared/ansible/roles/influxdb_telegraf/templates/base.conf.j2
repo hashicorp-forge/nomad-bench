@@ -5,10 +5,11 @@ tls_ca = "{{ influxdb_telegraf_input_nomad_tls_ca }}"
 {% endif %}
 
 [[outputs.influxdb_v2]]
-urls         = {{ influxdb_telegraf_output_urls }}
-token        = "{{ influxdb_telegraf_output_token }}"
-organization = "{{ influxdb_telegraf_output_organization }}"
-bucket       = "{{ influxdb_telegraf_output_bucket }}"
+  urls                 = {{ influxdb_telegraf_output_urls }}
+  token                = "{{ influxdb_telegraf_output_token }}"
+  organization         = "{{ influxdb_telegraf_output_organization }}"
+  bucket               = "{{ influxdb_telegraf_output_bucket }}"
+  insecure_skip_verify = true
 
 [[inputs.mem]]
 
