@@ -6,7 +6,7 @@ resource "aws_instance" "servers" {
   subnet_id                   = element(var.subnet_ids, count.index % length(var.subnet_ids))
   vpc_security_group_ids      = var.security_groups
   key_name                    = var.key_name
-  iam_instance_profile        = aws_iam_instance_profile.nomad_instance_profile.id
+  iam_instance_profile        = aws_iam_instance_profile.servers.id
   associate_public_ip_address = false
 
   user_data                   = file("${path.module}/nomad.sh")
@@ -36,7 +36,7 @@ resource "aws_instance" "clients" {
   subnet_id                   = element(var.subnet_ids, count.index % length(var.subnet_ids))
   vpc_security_group_ids      = var.security_groups
   key_name                    = var.key_name
-  iam_instance_profile        = aws_iam_instance_profile.nomad_instance_profile.id
+  iam_instance_profile        = aws_iam_instance_profile.clients.id
   associate_public_ip_address = false
 
   user_data                   = file("${path.module}/nomad.sh")
@@ -50,6 +50,9 @@ resource "aws_instance" "clients" {
 
   metadata_options {
     http_tokens = "required"
+
+    # Add one extra hop to allow Docker containers to reach the metadata API.
+    http_put_response_hop_limit = "2"
   }
 
   tags = {

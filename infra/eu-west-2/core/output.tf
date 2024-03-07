@@ -50,3 +50,7 @@ output "cli_key" {
 output "dns_ns" {
   value = aws_route53_zone.nomad_bench.name_servers
 }
+
+output "lb_private_ip" {
+  value = module.core_cluster_lb.lb_private_ip
+}

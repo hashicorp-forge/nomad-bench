@@ -45,7 +45,7 @@ module "network" {
 module "tls" {
   source = "../../../shared/terraform/modules/nomad-tls"
 
-  lb_ips     = [module.core_cluster_lb.lb_public_ip]
+  lb_ips     = [module.core_cluster_lb.lb_public_ip, module.core_cluster_lb.lb_private_ip]
   client_ips = module.core_cluster.client_private_ips
   server_ips = module.core_cluster.server_private_ips
   dns_names  = [aws_route53_record.nomad_bench.name]
