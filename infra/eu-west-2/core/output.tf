@@ -2,9 +2,17 @@ output "message" {
   value = module.output.message
 }
 
+output "ami_id" {
+  value = data.aws_ami.ubuntu.id
+}
+
 output "ssh_key" {
   value     = module.ssh.private_key_pem
   sensitive = true
+}
+
+output "ssh_key_name" {
+  value = module.ssh.key_name
 }
 
 output "ca_cert" {
@@ -56,6 +64,22 @@ output "dns_ns" {
   value = aws_route53_zone.nomad_bench.name_servers
 }
 
+output "private_subnet_ids" {
+  value = module.network.private_subnet_ids
+}
+
+output "security_group_id" {
+  value = module.network.nomad_security_group_id
+}
+
 output "lb_private_ip" {
   value = module.core_cluster_lb.lb_private_ip
+}
+
+output "lb_public_ip" {
+  value = module.core_cluster_lb.lb_public_ip
+}
+
+output "bastion_ip" {
+  value = module.bastion.public_ip
 }

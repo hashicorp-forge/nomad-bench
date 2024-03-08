@@ -10,3 +10,6 @@ tls/
 
 # Python virtual environment.
 .venv
+
+# Test cluster nodesim variables.
+nodesim-vars/

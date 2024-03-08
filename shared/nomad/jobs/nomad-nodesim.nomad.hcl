@@ -1,6 +1,6 @@
 variable "group_num" {
   type        = number
-  default     = 146
+  default     = 1
   description = "The number of nodesim allocations to trigger; each allocation runs 100 client processes."
 }
 
@@ -9,11 +9,17 @@ variable "server_addr" {
   description = "The Nomad server RPC addresses to register with."
 }
 
+variable "namespace" {
+  type        = string
+  description = "The Nomad namespace where the job is registered."
+}
+
 locals {
   server_addr_flags = [for s in var.server_addr : format("-server-addr=%s", s)]
 }
 
 job "nomad-nodesim" {
+  namespace = var.namespace
 
   group "nomad-nodesim" {
 
