@@ -7,7 +7,7 @@ resource "aws_instance" "bastion" {
   associate_public_ip_address = true
 
   root_block_device {
-    volume_size = 10
+    volume_size = 100
   }
 
   metadata_options {
