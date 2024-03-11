@@ -10,18 +10,6 @@ variable "influxdb_org_name" {
   description = "The initial InfluxDB organization to create."
 }
 
-variable "influxdb_admin_password" {
-  type        = string
-  default     = "ZG&ECk/~ws3Nx'6?$n5t7M"
-  description = "The password to associate with the admin user."
-}
-
-variable "influxdb_admin_token" {
-  type        = string
-  default     = "ZuXY8FXZL435F7TXeiA_UUOnx4cA4pCqDfsbYyW9O9eysFeR_5SmcNS8ZKb35FtG50ul4WIxAz9RksGt6fb1og=="
-  description = "The initial admin API token to create."
-}
-
 job "influxdb" {
   type = "service"
 
@@ -35,9 +23,10 @@ job "influxdb" {
     }
 
     volume "influxdb" {
-      type      = "host"
-      read_only = false
-      source    = "influxdb"
+      type            = "csi"
+      source          = "influxdb"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
     }
 
     service {
@@ -68,16 +57,24 @@ job "influxdb" {
       volume_mount {
         volume      = "influxdb"
         destination = "/var/lib/influxdb2"
-        read_only   = false
       }
 
       env {
-        DOCKER_INFLUXDB_INIT_MODE        = "setup"
-        DOCKER_INFLUXDB_INIT_USERNAME    = "admin"
-        DOCKER_INFLUXDB_INIT_PASSWORD    = var.influxdb_admin_password
-        DOCKER_INFLUXDB_INIT_ORG         = var.influxdb_org_name
-        DOCKER_INFLUXDB_INIT_BUCKET      = var.influxdb_bucket_name
-        DOCKER_INFLUXDB_INIT_ADMIN_TOKEN = var.influxdb_admin_token
+        DOCKER_INFLUXDB_INIT_MODE     = "setup"
+        DOCKER_INFLUXDB_INIT_USERNAME = "admin"
+        DOCKER_INFLUXDB_INIT_ORG      = var.influxdb_org_name
+        DOCKER_INFLUXDB_INIT_BUCKET   = var.influxdb_bucket_name
+      }
+
+      template {
+        data        = <<EOF
+{{with nomadVar "nomad/jobs/influxdb"}}
+DOCKER_INFLUXDB_INIT_PASSWORD={{.admin_password}}
+DOCKER_INFLUXDB_INIT_ADMIN_TOKEN={{.admin_token}}
+{{end}}
+EOF
+        destination = "${NOMAD_SECRET_DIR}/env"
+        env         = true
       }
 
       resources {

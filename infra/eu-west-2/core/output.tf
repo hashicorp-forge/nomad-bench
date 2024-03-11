@@ -47,6 +47,15 @@ output "cli_key" {
   sensitive = true
 }
 
+output "influxdb_token" {
+  value     = random_password.influxdb_token.result
+  sensitive = true
+}
+
 output "dns_ns" {
   value = aws_route53_zone.nomad_bench.name_servers
+}
+
+output "lb_private_ip" {
+  value = module.core_cluster_lb.lb_private_ip
 }
