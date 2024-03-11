@@ -34,3 +34,18 @@ resource "ansible_group" "server" {
     }
   )
 }
+
+resource "ansible_group" "bastion" {
+  name = "bastion"
+  variables = merge(local.ansible_default_vars, {
+    ansible_ssh_common_args = "-o StrictHostKeyChecking=no -o IdentitiesOnly=yes"
+  })
+}
+
+resource "ansible_host" "bastion" {
+  name   = "bastion_0"
+  groups = [ansible_group.bastion.name]
+  variables = {
+    ansible_host = data.terraform_remote_state.core.outputs.bastion_ip
+  }
+}
