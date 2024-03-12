@@ -8,6 +8,15 @@
         golang_version: "1.21.7"
         golang_redis_sha256sum: "13b76a9b2a26823e53062fa841b07087d48ae2ef2936445dc34c4ae03293702c"
 
+    - role: influxdb_telegraf
+      vars:
+        influxdb_telegraf_input_nomad_enabled: false
+        influxdb_telegraf_output_token: "{{ terraform_influxdb_token }}"
+        influxdb_telegraf_output_organization: "nomad-eng"
+        influxdb_telegraf_output_bucket: "bastion"
+        # Hack to make the Terraform dynamic inventory plugin work with complex types.
+        influxdb_telegraf_output_urls: "{{ terraform_influxdb_telegraf_output_urls_json | ansible.builtin.from_json }}"
+
     - role: build
       vars:
         build_user: "{{ lookup('env', 'USER') }}"
