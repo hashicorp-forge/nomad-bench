@@ -73,7 +73,7 @@ module "core_cluster" {
   server_count         = 1
   server_instance_type = "t3.medium"
   client_count         = 2
-  client_instance_type = "t3.small"
+  client_instance_type = "t3.medium"
   ami                  = data.aws_ami.ubuntu.id
   subnet_ids           = module.network.private_subnet_ids
   key_name             = module.ssh.key_name
