@@ -1,6 +1,6 @@
 terraform {
   # Uncomment to store state in Terraform Cloud.
-  # Your workspace should be configured with local execution mode.
+  # Your workspace MUST be configured with local execution mode.
   #
   # cloud {
   #   organization = "nomad-eng"
