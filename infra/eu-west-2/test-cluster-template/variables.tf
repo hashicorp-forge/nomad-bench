@@ -1,3 +1,7 @@
+variable "project_name" {
+  type = string
+}
+
 variable "ssh_key_path" {
   default = "../core/keys/bench-core.pem"
 }

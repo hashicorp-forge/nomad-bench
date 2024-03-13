@@ -22,7 +22,7 @@ module "clusters" {
 module "bootstrap" {
   source = "../../../shared/terraform/modules/test-bench-bootstrap"
 
-  project_name             = "test-cluster-template"
+  project_name             = var.project_name
   influxdb_org_name        = var.influxdb_org
   influxdb_bucket_suffixes = keys(local.test_clusters)
 }
