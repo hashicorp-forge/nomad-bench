@@ -1,27 +1,18 @@
 variable "group_num" {
   type        = number
-  default     = 146
+  default     = 1
   description = "The number of nodesim allocations to trigger; each allocation runs 100 client processes."
 }
 
-variable "server_addr" {
-  type        = list(string)
-  description = "The Nomad server RPC addresses to register with."
-}
-
-locals {
-  server_addr_flags = [for s in var.server_addr : format("-server-addr=%s", s)]
-}
-
-job "nomad-nodesim" {
+job "${terraform_nodesim_job_name}" {
+  namespace = "${terraform_nodesim_job_namespace}"
 
   group "nomad-nodesim" {
+    count = var.group_num
 
     network {
       mode = "bridge"
     }
-
-    count = var.group_num
 
     task "nomad-nodesim" {
       driver      = "docker"
@@ -31,14 +22,14 @@ job "nomad-nodesim" {
         privileged = true
         image      = "jrasell/nomad-nodesim:latest"
         command    = "nomad-nodesim"
-        args = concat(
-          local.server_addr_flags,
-          [
-            "-node-num=100",
-            "-work-dir=${NOMAD_TASK_DIR}",
-            "-config=${NOMAD_TASK_DIR}/config.hcl",
-          ],
-        )
+        args = [
+          "-node-num=100",
+          "-work-dir=$${NOMAD_TASK_DIR}",
+          "-config=$${NOMAD_TASK_DIR}/config.hcl",
+%{ for addr in terraform_nodesim_job_servers ~}
+          "-server-addr=${addr}",
+%{ endfor ~}
+        ]
       }
 
       template {
@@ -51,7 +42,7 @@ node {
 EOH
 
         change_mode = "restart"
-        destination = "${NOMAD_TASK_DIR}/config.hcl"
+        destination = "$${NOMAD_TASK_DIR}/config.hcl"
       }
 
       resources {

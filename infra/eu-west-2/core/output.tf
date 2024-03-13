@@ -1,10 +1,44 @@
 output "message" {
-  value = module.output.message
+  value = <<-EOM
+Your ${var.project_name} cluster has been provisioned!
+
+The load balancer address where the Nomad UI and API will be available is:
+  https://${module.core_cluster_lb.lb_public_ip}
+
+Extract mTLS certificates and SSH key from state:
+  make
+
+Run the Ansible playbook to configure the VMs:
+  cd ./ansible && ansible-playbook ./playbook.yaml && cd ..
+
+SSH into the load balancer host:
+  ssh -i ./keys/${var.project_name}.pem ubuntu@${module.core_cluster_lb.lb_public_ip}
+
+SSH into the bastion host:
+  ssh -i ./keys/${var.project_name}.pem ubuntu@${module.bastion.public_ip}
+
+Export the environment variables necessary to access the Nomad cluster:
+  export NOMAD_ADDR=https://${module.core_cluster_lb.lb_public_ip}:443
+  export NOMAD_CACERT="${path.module}/tls/nomad-agent-ca.pem"
+
+If this is a new cluster, bootstrap the ACL system and store the token
+somewhere safe. Export it as the NOMAD_TOKEN environment variable.
+
+Use the core-nomad infrastructure folder to configure the Nomad cluster.
+EOM
+}
+
+output "ami_id" {
+  value = data.aws_ami.ubuntu.id
 }
 
 output "ssh_key" {
   value     = module.ssh.private_key_pem
   sensitive = true
+}
+
+output "ssh_key_name" {
+  value = module.ssh.key_name
 }
 
 output "ca_cert" {
@@ -56,6 +90,22 @@ output "dns_ns" {
   value = aws_route53_zone.nomad_bench.name_servers
 }
 
+output "private_subnet_ids" {
+  value = module.network.private_subnet_ids
+}
+
+output "security_group_id" {
+  value = module.network.nomad_security_group_id
+}
+
 output "lb_private_ip" {
   value = module.core_cluster_lb.lb_private_ip
+}
+
+output "lb_public_ip" {
+  value = module.core_cluster_lb.lb_public_ip
+}
+
+output "bastion_ip" {
+  value = module.bastion.public_ip
 }

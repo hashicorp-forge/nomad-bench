@@ -1,0 +1,23 @@
+- hosts: bastion
+  roles:
+    - role: build
+      vars:
+        build_user: "{{ lookup('env', 'USER') }}"
+      tags:
+        - "never"
+        - "custom_build"
+
+- hosts: server
+  roles:
+    - role: common
+    - role: nomad
+      vars:
+        nomad_server_enabled: true
+        nomad_server_join_retry_join: ["{{ terraform_nomad_server_join }}"]
+        nomad_limits_http_max_conns_per_client: 0
+        nomad_limits_rpc_max_conns_per_client: 0
+        nomad_custom_binary_source: "{{ build_nomad_local_code_path }}/pkg/linux_amd64/nomad"
+    - role: influxdb_telegraf
+      vars:
+        influxdb_telegraf_input_nomad_url: "http://127.0.0.1:4646"
+        influxdb_telegraf_output_urls: "{{ terraform_influxdb_telegraf_output_urls_json | ansible.builtin.from_json }}"

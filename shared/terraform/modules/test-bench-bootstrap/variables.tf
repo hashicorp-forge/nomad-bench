@@ -7,7 +7,7 @@ variable "project_name" {
 variable "influxdb_bucket_suffixes" {
   description = "The suffix is append to the `project_name` and the number of buckets is represented by the list length."
   type        = list(string)
-  default     = [ ]
+  default     = []
 }
 
 variable "influxdb_org_name" {

@@ -100,12 +100,3 @@ resource "ansible_group" "all" {
     terraform_influxdb_token                     = random_password.influxdb_token.result
   }
 }
-
-module "output" {
-  source = "../../../shared/terraform/modules/nomad-output"
-
-  project_name               = var.project_name
-  bastion_host_public_ip     = module.bastion.public_ip
-  tls_certs_root_path        = "$PWD/tls"
-  nomad_lb_public_ip_address = module.core_cluster_lb.lb_public_ip
-}
