@@ -11,5 +11,5 @@ tls/
 # Python virtual environment.
 .venv
 
-# Test cluster nodesim variables.
-nodesim-vars/
+# Test cluster nodesim jobs.
+**/*/jobs/nomad-nodesim-*

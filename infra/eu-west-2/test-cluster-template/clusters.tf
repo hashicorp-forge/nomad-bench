@@ -27,12 +27,13 @@ module "bootstrap" {
   influxdb_bucket_suffixes = keys(local.test_clusters)
 }
 
-resource "local_file" "nodesim_vars" {
+resource "local_file" "nodesim_jobs" {
   for_each = local.test_clusters
 
-  content  = <<EOF
-namespace = "${module.bootstrap.nomad_namespace}"
-server_addr = ${jsonencode(module.clusters[each.key].server_private_ips)}
-EOF
-  filename = "nodesim-vars/${each.key}.hcl"
+  content = templatefile("../../../shared/nomad/jobs/nomad-nodesim.nomad.hcl.tpl", {
+    terraform_nodesim_job_name      = each.key
+    terraform_nodesim_job_namespace = module.bootstrap.nomad_namespace
+    terraform_nodesim_job_servers   = module.clusters[each.key].server_private_ips
+  })
+  filename = "jobs/nomad-nodesim-${each.key}.nomad.hcl"
 }
