@@ -12,10 +12,13 @@
     - role: common
     - role: nomad
       vars:
-        nomad_server_enabled: true
+        # Most variables are defined in the inventory with Terraform. You can
+        # customize values for specific hosts or groups using the files in
+        # host_vars/ and group_vars/.
+        #
+        # Run `nomad-inventory --graph --vars` to list all variables defined on
+        # each host and group.
         nomad_server_join_retry_join: ["{{ terraform_nomad_server_join }}"]
-        nomad_limits_http_max_conns_per_client: 0
-        nomad_limits_rpc_max_conns_per_client: 0
         nomad_custom_binary_source: "{{ build_nomad_local_code_path }}/pkg/linux_amd64/nomad"
     - role: influxdb_telegraf
       vars:

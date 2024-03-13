@@ -13,7 +13,3 @@ tls/
 
 # Test cluster nodesim jobs.
 **/*/jobs/nomad-nodesim-*
-
-# Test clusters configuration.
-test-cluster-*/
-!test-cluster-template/
