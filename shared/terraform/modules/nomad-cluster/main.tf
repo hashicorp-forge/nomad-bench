@@ -9,9 +9,6 @@ resource "aws_instance" "servers" {
   iam_instance_profile        = aws_iam_instance_profile.servers.id
   associate_public_ip_address = false
 
-  user_data                   = file("${path.module}/nomad.sh")
-  user_data_replace_on_change = true
-
   root_block_device {
     volume_size = 100
     volume_type = "gp3"
@@ -38,9 +35,6 @@ resource "aws_instance" "clients" {
   key_name                    = var.key_name
   iam_instance_profile        = aws_iam_instance_profile.clients.id
   associate_public_ip_address = false
-
-  user_data                   = file("${path.module}/nomad.sh")
-  user_data_replace_on_change = true
 
   root_block_device {
     volume_size = 100

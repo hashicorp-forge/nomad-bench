@@ -1,3 +1,33 @@
+- name: "download_hashicorp_gpg_key"
+  become: true
+  ansible.builtin.get_url:
+    url: "https://apt.releases.hashicorp.com/gpg"
+    dest: "/usr/share/keyrings/hashicorp-archive-keyring.asc"
+    checksum: "sha256:cafb01beac341bf2a9ba89793e6dd2468110291adfbb6c62ed11a0cde6c09029"
+
+- name: "install_hashicorp_apt_repo"
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.asc] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+    filename: "hashicorp"
+    state: "present"
+
+- name: "install_specific_nomad_version"
+  become: true
+  ansible.builtin.apt:
+    name: "nomad={{ nomad_pkg_version }}"
+    state: "present"
+    update_cache: true
+  when: nomad_pkg_version | length > 0
+
+- name: "install_latest_nomad_version"
+  become: true
+  ansible.builtin.apt:
+    name: "nomad"
+    state: "present"
+    update_cache: true
+  when: nomad_pkg_version| length == 0
+
 - name: "stat_log_file"
   stat: path="{{ nomad_log_file }}"
   register: log_file
@@ -102,6 +132,13 @@
   tags:
     - "never"
     - "custom_build"
+
+- name: "start_nomad_service"
+  become: true
+  ansible.builtin.service:
+    name: "nomad"
+    state: "started"
+    enabled: true
 
 - name: "acl_bootstrap"
   ansible.builtin.import_tasks:
