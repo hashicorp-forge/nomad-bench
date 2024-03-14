@@ -53,7 +53,7 @@
     owner: "{{ nomad_user }}"
     group: "{{ nomad_group }}"
     mode: "0655"
-  when: nomad_server_enabled is true
+  when: nomad_server_enabled
   notify:
     - "restart_nomad"
 
@@ -65,7 +65,7 @@
     owner: "{{ nomad_user }}"
     group: "{{ nomad_group }}"
     mode: "0655"
-  when: nomad_client_enabled is true
+  when: nomad_client_enabled
   notify:
     - "restart_nomad"
 
