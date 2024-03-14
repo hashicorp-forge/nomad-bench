@@ -11,11 +11,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/collector"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/config"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/log"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/metadata"
 	"github.com/hashicorp/nomad/helper/uuid"
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/collector"
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/config"
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/log"
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/metadata"
 	"github.com/mitchellh/cli"
 )
 

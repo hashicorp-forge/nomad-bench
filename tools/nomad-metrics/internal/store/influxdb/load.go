@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-hclog"
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/config"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/config"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 )

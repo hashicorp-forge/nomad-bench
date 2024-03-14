@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/cmd"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/cmd"
 	"github.com/mitchellh/cli"
 )
 
