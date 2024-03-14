@@ -63,3 +63,10 @@
     mode: "0755"
   notify:
     - "reload_systemd"
+
+- name: "start_influx_telegraf_service"
+  become: true
+  ansible.builtin.service:
+    name: "influxdb_telegraf"
+    state: "started"
+    enabled: true
