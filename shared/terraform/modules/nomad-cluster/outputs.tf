@@ -6,8 +6,12 @@ output "server_private_ips" {
   value = aws_instance.servers.*.private_ip
 }
 
-output "ansible_group_server" {
+output "server_ansible_group" {
   value = ansible_group.server.name
+}
+
+output "server_ansible_hosts" {
+  value = [for h in ansible_host.server : h.name]
 }
 
 output "client_ids" {
@@ -18,6 +22,10 @@ output "client_private_ips" {
   value = aws_instance.clients.*.private_ip
 }
 
-output "ansible_group_client" {
+output "client_ansible_group" {
   value = ansible_group.client.name
+}
+
+output "client_ansible_hosts" {
+  value = [for h in ansible_host.client : h.name]
 }

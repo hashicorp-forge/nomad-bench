@@ -82,13 +82,13 @@ module "core_cluster" {
 
 resource "ansible_group" "server" {
   name      = "server"
-  children  = [module.core_cluster.ansible_group_server]
+  children  = [module.core_cluster.server_ansible_group]
   variables = local.ansible_default_vars
 }
 
 resource "ansible_group" "client" {
   name      = "client"
-  children  = [module.core_cluster.ansible_group_client]
+  children  = [module.core_cluster.client_ansible_group]
   variables = local.ansible_default_vars
 }
 
