@@ -27,22 +27,25 @@
   changed_when: false
   failed_when: false
 
-- name: "download_and_unarchive_influxdb_telegraf"
-  become: true
-  ansible.builtin.unarchive:
-    src: "{{ influxdb_telegraf_url }}"
-    dest: "/tmp"
-    mode: "0755"
-    remote_src: true
-  when: "not telegraf_binary.stat.exists or telegraf_binary_version is not defined or influxdb_telegraf_version|string not in telegraf_binary_version.stdout"
-
-- name: "move_influxdb_telegraf_binary"
-  become: true
-  copy:
-    src: "/tmp/{{ influxdb_telegraf_tar_file }}/usr/bin/telegraf"
-    dest: "{{ influxdb_telegraf_install_dir }}/"
-    mode: 0755
-    remote_src: true
+- block:
+    - name: "create_install_directory"
+      become: true
+      ansible.builtin.file:
+        path: "/tmp/telegraf/"
+        state: "directory"
+    - name: "download_and_unarchive_influxdb_telegraf"
+      become: true
+      ansible.builtin.unarchive:
+        src: "{{ influxdb_telegraf_url }}"
+        dest: "/tmp/telegraf/"
+        remote_src: true
+    - name: "move_influxdb_telegraf_binary"
+      become: true
+      copy:
+        src: "/tmp/telegraf/{{ influxdb_telegraf_tar_file }}/usr/bin/telegraf"
+        dest: "{{ influxdb_telegraf_install_dir }}/"
+        mode: "0755"
+        remote_src: true
   when: "not telegraf_binary.stat.exists or telegraf_binary_version is not defined or influxdb_telegraf_version|string not in telegraf_binary_version.stdout"
   notify:
     - "restart_influxdb_telegraf"
@@ -50,7 +53,7 @@
 - name: "remove_influxdb_telegraf_archive"
   become: true
   ansible.builtin.file:
-    path: "/tmp/{{ influxdb_telegraf_tar_file }}"
+    path: "/tmp/telegraf/"
     state: "absent"
 
 - name: "create_influxdb_telegraf_service_file"
