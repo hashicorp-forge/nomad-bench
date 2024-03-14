@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/cmd/telemetry"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/cmd/telemetry"
 	"github.com/mitchellh/cli"
 )
 

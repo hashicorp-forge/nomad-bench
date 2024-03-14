@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/config"
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/log"
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/store"
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/store/influxdb"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/config"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/log"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/store"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/store/influxdb"
 	"github.com/mitchellh/cli"
 )
 

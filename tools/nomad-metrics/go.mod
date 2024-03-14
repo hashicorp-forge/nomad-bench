@@ -1,4 +1,4 @@
-module github.com/hashicorp/team-nomad/tools/nomad-metrics
+module github.com/hashicorp/nomad-bench/nomad-metrics
 
 go 1.21
 

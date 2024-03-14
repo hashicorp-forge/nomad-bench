@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/write"
 	"github.com/hashicorp/nomad/api"
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/write"
 )
 
 type Metadata struct {

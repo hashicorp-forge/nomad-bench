@@ -2,7 +2,7 @@ package log
 
 import (
 	"github.com/hashicorp/go-hclog"
-	"github.com/hashicorp/team-nomad/tools/nomad-metrics/internal/config"
+	"github.com/hashicorp/nomad-bench/nomad-metrics/internal/config"
 )
 
 func NewLogger(cfg *config.Log) hclog.Logger {
