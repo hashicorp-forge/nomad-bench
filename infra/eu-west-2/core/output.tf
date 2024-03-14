@@ -19,7 +19,7 @@ SSH into the bastion host:
 
 Export the environment variables necessary to access the Nomad cluster:
   export NOMAD_ADDR=https://${module.core_cluster_lb.lb_public_ip}:443
-  export NOMAD_CACERT="${path.module}/tls/nomad-agent-ca.pem"
+  export NOMAD_CACERT="$PWD/tls/nomad-agent-ca.pem"
 
 If this is a new cluster, bootstrap the ACL system and store the token
 somewhere safe. Export it as the NOMAD_TOKEN environment variable.
