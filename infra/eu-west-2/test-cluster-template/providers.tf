@@ -33,6 +33,17 @@ data "terraform_remote_state" "core" {
   }
 }
 
+data "terraform_remote_state" "core_nomad" {
+  backend = "remote"
+
+  config = {
+    organization = "nomad-eng"
+    workspaces = {
+      name = "nomad-bench-core-nomad"
+    }
+  }
+}
+
 provider "aws" {
   region = "eu-west-2"
 }
