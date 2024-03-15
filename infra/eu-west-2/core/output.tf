@@ -11,12 +11,6 @@ Extract mTLS certificates and SSH key from state:
 Run the Ansible playbook to configure the VMs:
   cd ./ansible && ansible-playbook ./playbook.yaml && cd ..
 
-SSH into the load balancer host:
-  ssh -i ./keys/${var.project_name}.pem ubuntu@${module.core_cluster_lb.lb_public_ip}
-
-SSH into the bastion host:
-  ssh -i ./keys/${var.project_name}.pem ubuntu@${module.bastion.public_ip}
-
 Export the environment variables necessary to access the Nomad cluster:
   export NOMAD_ADDR=https://${module.core_cluster_lb.lb_public_ip}:443
   export NOMAD_CACERT="$PWD/tls/nomad-agent-ca.pem"
@@ -25,6 +19,20 @@ If this is a new cluster, bootstrap the ACL system and store the token
 somewhere safe. Export it as the NOMAD_TOKEN environment variable.
 
 Use the core-nomad infrastructure folder to configure the Nomad cluster.
+
+Use the following commands to SSH into hosts:
+  Bastion:
+    ssh -i ./keys/${var.project_name}.pem ubuntu@${module.bastion.public_ip}
+  Load Balancer:
+    ssh -i ./keys/${var.project_name}.pem ubuntu@${module.core_cluster_lb.lb_public_ip}
+  Nomad servers:
+%{for ip in module.core_cluster.server_private_ips~}
+    ssh -i ./keys/${var.project_name}.pem -J ubuntu@${module.bastion.public_ip} ubuntu@${ip}
+%{endfor~}
+  Nomad clients:
+%{for ip in module.core_cluster.client_private_ips~}
+    ssh -i ./keys/${var.project_name}.pem -J ubuntu@${module.bastion.public_ip} ubuntu@${ip}
+%{endfor~}
 EOM
 }
 
