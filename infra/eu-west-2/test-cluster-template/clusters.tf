@@ -23,7 +23,7 @@ module "bootstrap" {
   source = "../../../shared/terraform/modules/test-bench-bootstrap"
 
   project_name             = var.project_name
-  influxdb_org_name        = var.influxdb_org
+  influxdb_org_name        = data.terraform_remote_state.core_nomad.outputs.influxdb_org_name
   influxdb_bucket_suffixes = keys(local.test_clusters)
 }
 
@@ -35,5 +35,11 @@ resource "local_file" "nodesim_jobs" {
     terraform_nodesim_job_namespace = module.bootstrap.nomad_namespace
     terraform_nodesim_job_servers   = module.clusters[each.key].server_private_ips
   })
-  filename = "jobs/nomad-nodesim-${each.key}.nomad.hcl"
+  filename = "${path.root}/jobs/nomad-nodesim-${each.key}.nomad.hcl"
+}
+
+resource "local_sensitive_file" "ssh_key" {
+  content         = data.terraform_remote_state.core.outputs.ssh_key
+  filename        = "${path.root}/keys/bench-core.pem"
+  file_permission = "0600"
 }

@@ -1,3 +1,7 @@
+locals {
+  influxdb_org_name = "nomad-eng"
+}
+
 resource "aws_ebs_volume" "influxdb" {
   availability_zone = "eu-west-2a"
   size              = 10
@@ -55,4 +59,10 @@ resource "nomad_variable" "influxdb" {
 
 resource "nomad_job" "influxdb" {
   jobspec = file("${path.module}/../../../shared/nomad/jobs/influxdb.nomad.hcl")
+
+  hcl2 {
+    vars = {
+      influxdb_org_name = local.influxdb_org_name
+    }
+  }
 }
