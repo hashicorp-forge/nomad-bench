@@ -4,8 +4,8 @@ variable "group_num" {
   description = "The number of nodesim allocations to trigger; each allocation runs 100 client processes."
 }
 
-job "${terraform_nodesim_job_name}" {
-  namespace = "${terraform_nodesim_job_namespace}"
+job "${terraform_job_name}" {
+  namespace = "${terraform_job_namespace}"
 
   group "nomad-nodesim" {
     count = var.group_num
@@ -24,9 +24,9 @@ job "${terraform_nodesim_job_name}" {
         command    = "nomad-nodesim"
         args = [
           "-node-num=100",
-          "-work-dir=$${NOMAD_TASK_DIR}",
-          "-config=$${NOMAD_TASK_DIR}/config.hcl",
-%{ for addr in terraform_nodesim_job_servers ~}
+          "-work-dir=#{NOMAD_TASK_DIR}",
+          "-config=#{NOMAD_TASK_DIR}/config.hcl",
+%{ for addr in terraform_job_servers ~}
           "-server-addr=${addr}",
 %{ endfor ~}
         ]
@@ -42,7 +42,7 @@ node {
 EOH
 
         change_mode = "restart"
-        destination = "$${NOMAD_TASK_DIR}/config.hcl"
+        destination = "#{NOMAD_TASK_DIR}/config.hcl"
       }
 
       resources {

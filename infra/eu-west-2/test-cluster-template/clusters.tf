@@ -22,20 +22,11 @@ module "clusters" {
 module "bootstrap" {
   source = "../../../shared/terraform/modules/test-bench-bootstrap"
 
-  project_name             = var.project_name
-  influxdb_org_name        = data.terraform_remote_state.core_nomad.outputs.influxdb_org_name
-  influxdb_bucket_suffixes = keys(local.test_clusters)
-}
-
-resource "local_file" "nodesim_jobs" {
-  for_each = local.test_clusters
-
-  content = templatefile("../../../shared/nomad/jobs/nomad-nodesim.nomad.hcl.tpl", {
-    terraform_nodesim_job_name      = each.key
-    terraform_nodesim_job_namespace = module.bootstrap.nomad_namespace
-    terraform_nodesim_job_servers   = module.clusters[each.key].server_private_ips
-  })
-  filename = "${path.root}/jobs/nomad-nodesim-${each.key}.nomad.hcl"
+  project_name       = var.project_name
+  influxdb_org_name  = data.terraform_remote_state.core_nomad.outputs.influxdb_org_name
+  influxdb_url       = "https://${data.terraform_remote_state.core.outputs.lb_private_ip}:8086"
+  clusters           = keys(local.test_clusters)
+  cluster_server_ips = { for k, v in module.clusters : k => v.server_private_ips }
 }
 
 resource "local_sensitive_file" "ssh_key" {

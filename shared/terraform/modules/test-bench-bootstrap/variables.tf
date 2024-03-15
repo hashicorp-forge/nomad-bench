@@ -4,14 +4,20 @@ variable "project_name" {
   default     = "nomad-bench"
 }
 
-variable "influxdb_bucket_suffixes" {
-  description = "The suffix is append to the `project_name` and the number of buckets is represented by the list length."
-  type        = list(string)
-  default     = []
-}
-
 variable "influxdb_org_name" {
   description = "The InfluxDB org name where the bucket will be created."
   type        = string
   default     = "nomad-eng"
+}
+
+variable "influxdb_url" {
+  type = string
+}
+
+variable "clusters" {
+  type = set(string)
+}
+
+variable "cluster_server_ips" {
+  type = map(list(string))
 }
