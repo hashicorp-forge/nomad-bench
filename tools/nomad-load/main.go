@@ -28,22 +28,19 @@ const version = "0.0.1"
 //go:embed assets/job.nomad.hcl
 var defaultJob string
 
-func main() {
-	var nomadAddr, httpAddr, httpPort, logLevel string
-	var reqRate float64
-	var workers int
+var (
+	nomadAddr = flag.String("nomad-addr", "", "The address of the Nomad server")
+	reqRate   = flag.Float64("rate", 10, "The rate of job dispatches per second")
+	workers   = flag.Int("workers", 10*runtime.NumCPU(), "The number of workers to use")
+	logLevel  = flag.String("log-level", "DEBUG", "The log level to use")
+)
 
-	flag.StringVar(&nomadAddr, "nomad-addr", "", "")
-	flag.StringVar(&httpAddr, "bind", "0.0.0.0", "")
-	flag.StringVar(&httpPort, "port", "8080", "")
-	flag.StringVar(&logLevel, "log-level", "DEBUG", "")
-	flag.Float64Var(&reqRate, "rate", 10, "")
-	flag.IntVar(&workers, "workers", 10*runtime.NumCPU(), "")
+func main() {
 	flag.Parse()
 
 	logger := hclog.NewInterceptLogger(&hclog.LoggerOptions{
 		Name:            "nomad-load",
-		Level:           hclog.LevelFromString(logLevel),
+		Level:           hclog.LevelFromString(*logLevel),
 		IncludeLocation: true,
 	})
 
@@ -75,6 +72,7 @@ func main() {
 
 	// Initialize Nomad client and register test job.
 	config := api.DefaultConfig()
+	config.Address = *nomadAddr
 	c, err := api.NewClient(config)
 	if err != nil {
 		logger.Error("failed to start Nomad client", "error", err)
@@ -95,8 +93,8 @@ func main() {
 	}
 
 	// Start goroutines to dispatch job.
-	l := rate.NewLimiter(rate.Limit(reqRate), 1)
-	for i := 0; i < workers; i++ {
+	l := rate.NewLimiter(rate.Limit(*reqRate), 1)
+	for i := 0; i < *workers; i++ {
 		g.Go(func() error {
 			return dispatch(ctx, logger, l, c, *j.ID)
 		})
