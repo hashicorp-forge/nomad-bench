@@ -4,8 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"flag"
-	"fmt"
-	"net/http"
 	"os"
 	"runtime"
 	"strings"
@@ -13,14 +11,10 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-metrics"
-	metricsprom "github.com/hashicorp/go-metrics/prometheus"
 	"github.com/hashicorp/nomad/api"
 	"github.com/hashicorp/nomad/jobspec2"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
-
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const version = "0.0.1"
@@ -47,31 +41,8 @@ func main() {
 		IncludeLocation: true,
 	})
 
-	// Start metrics collection.
-	promHandler := promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{
-		ErrorLog:           logger.Named("prometheus").StandardLogger(nil),
-		ErrorHandling:      promhttp.ContinueOnError,
-		DisableCompression: true,
-	})
-	promSink, err := metricsprom.NewPrometheusSink()
-	if err != nil {
-		logger.Error("failed to start Prometheus sink", "error", err)
-		os.Exit(1)
-	}
-	metrics.NewGlobal(metrics.DefaultConfig("nomad-load"), promSink)
-
 	// Create errgroup to watch goroutines.
 	g, ctx := errgroup.WithContext(context.Background())
-
-	// Start HTTP server for metrics.
-	mux := http.NewServeMux()
-	mux.Handle("/v1/metrics", promHandler)
-
-	httpServer := &http.Server{
-		Addr:    fmt.Sprintf("%s:%s", httpAddr, httpPort),
-		Handler: mux,
-	}
-	g.Go(httpServer.ListenAndServe)
 
 	// Initialize Nomad client and register test job.
 	config := api.DefaultConfig()
