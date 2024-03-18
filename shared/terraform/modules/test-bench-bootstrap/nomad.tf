@@ -94,6 +94,6 @@ resource "nomad_variable" "nomad_load_influxdb_token" {
   namespace = nomad_namespace.nomad_bench.name
   path      = "nomad/jobs/nomad-load-${each.key}"
   items = {
-    influxdb_token = influxdb-v2_authorization.cluster_tokens[each.key].token
+    influxdb_token = influxdb-v2_authorization.clusters[each.key].token
   }
 }

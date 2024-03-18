@@ -19,6 +19,8 @@ variable "influxdb_token" {
   sensitive = true
 }
 
+# Use separate variable for the cluster names to avoid circular dependency.
+# The cluster dependes on the InfluxDB buckets created by this module.
 variable "cluster_names" {
   type = set(string)
 }

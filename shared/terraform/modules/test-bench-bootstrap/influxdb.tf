@@ -14,7 +14,7 @@ resource "influxdb-v2_bucket" "clusters" {
   }
 }
 
-resource "influxdb-v2_authorization" "cluster_tokens" {
+resource "influxdb-v2_authorization" "clusters" {
   for_each = var.cluster_names
 
   org_id      = data.influxdb-v2_organization.influx_org.id
