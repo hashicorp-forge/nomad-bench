@@ -1,19 +1,19 @@
 locals {
-  nomad_nodesim_jobs = { for name, ips in var.cluster_server_ips : name => templatefile(
+  nomad_nodesim_jobs = { for name, cluster in var.clusters : name => templatefile(
     "${path.module}/nomad-nodesim.nomad.hcl.tpl",
     {
       terraform_job_name      = "nomad-nodesim-${name}"
       terraform_job_namespace = nomad_namespace.nomad_bench.name
-      terraform_job_servers   = ips
+      terraform_job_servers   = cluster.server_private_ips
     },
   ) }
 
-  nomad_load_jobs = { for name, ips in var.cluster_server_ips : name => templatefile(
+  nomad_load_jobs = { for name, cluster in var.clusters : name => templatefile(
     "${path.module}/nomad-load.nomad.hcl.tpl",
     {
       terraform_job_name        = "nomad-load-${name}"
       terraform_job_namespace   = nomad_namespace.nomad_bench.name
-      terraform_nomad_addr      = "http://${ips[0]}:4646"
+      terraform_nomad_addr      = "http://${cluster.server_private_ips[0]}:4646"
       terraform_influxdb_url    = var.influxdb_url
       terraform_influxdb_org    = data.influxdb-v2_organization.influx_org.name
       terraform_influxdb_bucket = influxdb-v2_bucket.clusters[name].name

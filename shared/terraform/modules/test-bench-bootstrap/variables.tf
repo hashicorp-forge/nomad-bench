@@ -14,10 +14,27 @@ variable "influxdb_url" {
   type = string
 }
 
-variable "clusters" {
+variable "influxdb_token" {
+  type      = string
+  sensitive = true
+}
+
+variable "cluster_names" {
   type = set(string)
 }
 
-variable "cluster_server_ips" {
-  type = map(list(string))
+variable "clusters" {
+  type = map(object({
+    server_private_ips : list(string)
+    server_ansible_group : string
+    server_ansible_hosts : list(string)
+  }))
+}
+
+variable "ssh_key_path" {
+  type = string
+}
+
+variable "bastion_ip" {
+  type = string
 }

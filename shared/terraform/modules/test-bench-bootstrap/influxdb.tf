@@ -1,18 +1,9 @@
-terraform {
-  required_providers {
-    influxdb-v2 = {
-      source  = "slcp/influxdb-v2"
-      version = "0.5.0"
-    }
-  }
-}
-
 data "influxdb-v2_organization" "influx_org" {
   name = var.influxdb_org_name
 }
 
 resource "influxdb-v2_bucket" "clusters" {
-  for_each = var.clusters
+  for_each = var.cluster_names
 
   name        = "${var.project_name}-${each.key}"
   description = "bucket created by Terraform for cluster ${each.key} in ${var.project_name}"
@@ -24,7 +15,7 @@ resource "influxdb-v2_bucket" "clusters" {
 }
 
 resource "influxdb-v2_authorization" "cluster_tokens" {
-  for_each = var.clusters
+  for_each = var.cluster_names
 
   org_id      = data.influxdb-v2_organization.influx_org.id
   description = "API token for ${each.key}"

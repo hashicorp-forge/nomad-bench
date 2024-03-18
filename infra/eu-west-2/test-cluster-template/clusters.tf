@@ -22,11 +22,14 @@ module "clusters" {
 module "bootstrap" {
   source = "../../../shared/terraform/modules/test-bench-bootstrap"
 
-  project_name       = var.project_name
-  influxdb_org_name  = data.terraform_remote_state.core_nomad.outputs.influxdb_org_name
-  influxdb_url       = "https://${data.terraform_remote_state.core.outputs.lb_private_ip}:8086"
-  clusters           = keys(local.test_clusters)
-  cluster_server_ips = { for k, v in module.clusters : k => v.server_private_ips }
+  project_name      = var.project_name
+  influxdb_org_name = data.terraform_remote_state.core_nomad.outputs.influxdb_org_name
+  influxdb_url      = "https://${data.terraform_remote_state.core.outputs.lb_private_ip}:8086"
+  influxdb_token    = data.terraform_remote_state.core.outputs.influxdb_token
+  cluster_names     = keys(local.test_clusters)
+  clusters          = module.clusters
+  ssh_key_path      = local_sensitive_file.ssh_key.filename
+  bastion_ip        = data.terraform_remote_state.core.outputs.bastion_ip
 }
 
 resource "local_sensitive_file" "ssh_key" {
