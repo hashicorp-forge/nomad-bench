@@ -82,6 +82,25 @@ The `telemetry load` command loads telemetry data into the specified data store.
   nomad-metrics-0e7f3f26/influxdb/
 ```
 
+#### `archive create` Example
+The `archive create` command can be used to upload local and remote telemetry data to long term storage
+such as AWS S3. AWS credentials should currently be provided via environment variables. The InfluxDB
+token must be a root token that can be
+[recreated](https://docs.influxdata.com/influxdb/v2/reference/cli/influxd/recovery/auth/create-operator/)
+if required.
+```
+./nomad-metrics archive create \
+  -store=influxdb \
+  -influxdb-auth-token=yo21OVmE3519Rj1M1ZQqwllUvgedmpYGh4cC6eksXt1uXcHcF47bSypJ9OVkEJhOIA7a8jN0kCU3jwa0rbJjeQ== \
+  -influxdb-bucket=jrasell \
+  -influxdb-organization=e43a3ff36f8f10d5 \
+  -influxdb-server-url=https://95.95.95.95:8086 \
+  -local-telemetry-path=./nomad-metrics-bc94b75a/ \
+  -aws-region=eu-west-2 \
+  -aws-s3-bucket=nomad-bench \
+  -aws-s3-bucket-key=data-archive/jrasell-test
+```
+
 ## Future Potential
 * Commands for processing and examining telemetry data
 * Additional cluster metadata

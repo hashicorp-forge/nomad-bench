@@ -27,6 +27,7 @@ func realMain(args []string) int {
 		Commands:   cmd.Commands(ui),
 		HelpFunc:   cli.BasicHelpFunc("nomad-metrics"),
 		HelpWriter: os.Stderr,
+		Version:    "0.0.1-alpha.1",
 	}
 
 	exitCode, err := cliImpl.Run()
