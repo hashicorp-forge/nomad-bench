@@ -83,7 +83,7 @@ The `telemetry load` command loads telemetry data into the specified data store.
 ```
 
 #### `archive create` Example
-The `archive create` can be used to upload local and remote telemetry data to long term storage
+The `archive create` command can be used to upload local and remote telemetry data to long term storage
 such as AWS S3. AWS credentials should currently be provided via environment variables. The InfluxDB
 token must be a root token that can be
 [recreated](https://docs.influxdata.com/influxdb/v2/reference/cli/influxd/recovery/auth/create-operator/)
