@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-hclog"
@@ -19,6 +20,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
+	"github.com/hashicorp/nomad-bench/tools/nomad-load/internal"
 	"github.com/hashicorp/nomad-bench/tools/nomad-load/version"
 )
 
@@ -26,9 +28,10 @@ var (
 	nomadAddr = flag.String("nomad-addr", "", "The address of the Nomad server")
 	httpAddr  = flag.String("http-addr", "0.0.0.0", "The address to bind the HTTP server to")
 	httpPort  = flag.String("http-port", "8080", "The port to bind the HTTP server to")
-	reqRate   = flag.Float64("rate", 10, "The rate of job dispatches per second")
+	reqRate   = flag.Float64("rate", 10, "The rate of constant job dispatches per second")
+	burstRate = flag.Int("burst", 1, "The burst rate of constant job dispatches")
 	workers   = flag.Int("workers", 10*runtime.NumCPU(), "The number of workers to use")
-	duration  = flag.Duration("duration", time.Minute, "The duration to run the test for")
+	job       = flag.String("job", "batch", "What job to dispatch. Available options are: batch (default), service, system, and periodic")
 	logLevel  = flag.String("log-level", "DEBUG", "The log level to use")
 )
 
@@ -36,7 +39,13 @@ func main() {
 	flag.Parse()
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, `Usage: ./nomad-load [options] pathToJobfile
+		fmt.Fprintf(os.Stderr, `Usage: ./nomad-load [options] [command]
+
+Commands:
+  constant   Dispatches a constant rate of jobs
+  sometimes  [TODO] Dispatches jobs at with a random delay
+
+  version    Prints the version of the tool
 
 Options:
 `)
@@ -49,23 +58,31 @@ Options:
 		IncludeLocation: true,
 	})
 
-	arg := flag.Args()
-	if len(arg) != 1 {
+	command := flag.Args()
+	if len(command) != 1 {
 		flag.Usage()
 		os.Exit(1)
 	}
 
-	if arg[0] == "version" {
-		fmt.Printf("Version: %s\nCommit: %s\n", version.VERSION, version.GITCOMMIT)
-		os.Exit(0)
+	// Parse job flag
+	var jobSpec string
+	switch *job {
+	case "batch":
+		jobSpec = internal.DispatchBatchJob
+	default:
+		logger.Error("invalid job type", "job", *job)
+		os.Exit(1)
 	}
 
-	jobFilePath := arg[0]
+	var lim *rate.Limiter
+	switch command[0] {
+	case "constant":
+		lim = rate.NewLimiter(rate.Limit(*reqRate), *burstRate)
+	case "version":
+		fmt.Printf("Version: %s\nCommit: %s\n", version.VERSION, version.GITCOMMIT)
+		os.Exit(0)
+	default:
 
-	jobFile, err := os.Open(jobFilePath)
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
 	}
 
 	// Start metrics collection.
@@ -82,9 +99,7 @@ Options:
 	metrics.NewGlobal(metrics.DefaultConfig("nomad-load"), promSink)
 
 	// Create errgroup to watch goroutines.
-	ctx, cancel := context.WithTimeout(context.Background(), *duration)
-	g, ctx := errgroup.WithContext(ctx)
-	defer cancel()
+	g, ctx := errgroup.WithContext(context.Background())
 
 	// Start HTTP server for metrics.
 	mux := http.NewServeMux()
@@ -105,7 +120,8 @@ Options:
 		os.Exit(1)
 	}
 
-	j, err := jobspec2.Parse("job.nomad.hcl", jobFile)
+	r := strings.NewReader(jobSpec)
+	j, err := jobspec2.Parse("job.nomad.hcl", r)
 	if err != nil {
 		logger.Error("failed to parse job", "error", err)
 		os.Exit(1)
@@ -118,11 +134,11 @@ Options:
 	}
 
 	// Start goroutines to dispatch job.
-	logger.Info("dispatching %v jobs at a rate of %v per second for %v", *workers, *reqRate, *duration)
-	l := rate.NewLimiter(rate.Limit(*reqRate), 1)
+	stdLogger := logger.StandardLogger(&hclog.StandardLoggerOptions{InferLevels: true})
+	stdLogger.Printf("[INFO] dispatching %v jobs at a rate of %v per second with bursts up to %v", *workers, *reqRate, *burstRate)
 	for i := 0; i < *workers; i++ {
 		g.Go(func() error {
-			return dispatch(ctx, logger, l, c, *j.ID)
+			return dispatch(ctx, logger, lim, c, *j.ID)
 		})
 	}
 
@@ -134,7 +150,7 @@ Options:
 	}
 }
 
-func dispatch(ctx context.Context, logger hclog.Logger, l *rate.Limiter, client *api.Client, jobID string) error {
+func dispatch(ctx context.Context, logger hclog.Logger, lim *rate.Limiter, client *api.Client, jobID string) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -142,7 +158,7 @@ func dispatch(ctx context.Context, logger hclog.Logger, l *rate.Limiter, client 
 		default:
 		}
 
-		r := l.Reserve()
+		r := lim.Reserve()
 		if !r.OK() {
 			continue
 		}
