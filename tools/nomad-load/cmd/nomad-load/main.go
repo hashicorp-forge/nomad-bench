@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"runtime"
@@ -43,7 +44,7 @@ func main() {
 
 Commands:
   constant   Dispatches a constant rate of jobs
-  sometimes  [TODO] Dispatches jobs at with a random delay
+  sometimes  Dispatches jobs at with a random delay
 
   version    Prints the version of the tool
 
@@ -75,9 +76,15 @@ Options:
 	}
 
 	var lim *rate.Limiter
+	var randomDelay bool
+
 	switch command[0] {
 	case "constant":
 		lim = rate.NewLimiter(rate.Limit(*reqRate), *burstRate)
+	case "sometimes":
+		// TODO: Is there a better way to make the limiter more random?
+		lim = rate.NewLimiter(rate.Limit(*reqRate), *burstRate)
+		randomDelay = true
 	case "version":
 		fmt.Printf("Version: %s\nCommit: %s\n", version.VERSION, version.GITCOMMIT)
 		os.Exit(0)
@@ -138,7 +145,7 @@ Options:
 	stdLogger.Printf("[INFO] dispatching %v jobs at a rate of %v per second with bursts up to %v", *workers, *reqRate, *burstRate)
 	for i := 0; i < *workers; i++ {
 		g.Go(func() error {
-			return dispatch(ctx, logger, lim, c, *j.ID)
+			return dispatch(ctx, logger, lim, randomDelay, c, *j.ID)
 		})
 	}
 
@@ -150,7 +157,7 @@ Options:
 	}
 }
 
-func dispatch(ctx context.Context, logger hclog.Logger, lim *rate.Limiter, client *api.Client, jobID string) error {
+func dispatch(ctx context.Context, logger hclog.Logger, lim *rate.Limiter, randomDelay bool, client *api.Client, jobID string) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -163,6 +170,10 @@ func dispatch(ctx context.Context, logger hclog.Logger, lim *rate.Limiter, clien
 			continue
 		}
 		time.Sleep(r.Delay())
+
+		if randomDelay {
+			time.Sleep(time.Duration(rand.IntN(1000)) * time.Millisecond)
+		}
 
 		_, _, err := client.Jobs().Dispatch(jobID, nil, nil, "", nil)
 		if err != nil {
