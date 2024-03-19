@@ -30,6 +30,8 @@ var defaultJob string
 
 var (
 	nomadAddr = flag.String("nomad-addr", "", "The address of the Nomad server")
+	httpAddr  = flag.String("http-addr", "0.0.0.0", "The address to bind the HTTP server to")
+	httpPort  = flag.String("http-port", "8080", "The port to bind the HTTP server to")
 	reqRate   = flag.Float64("rate", 10, "The rate of job dispatches per second")
 	workers   = flag.Int("workers", 10*runtime.NumCPU(), "The number of workers to use")
 	logLevel  = flag.String("log-level", "DEBUG", "The log level to use")
@@ -65,7 +67,7 @@ func main() {
 	mux.Handle("/v1/metrics", promHandler)
 
 	httpServer := &http.Server{
-		Addr:    fmt.Sprintf("%s:%s", httpAddr, httpPort),
+		Addr:    fmt.Sprintf("%s:%s", *httpAddr, *httpPort),
 		Handler: mux,
 	}
 	g.Go(httpServer.ListenAndServe)
