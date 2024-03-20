@@ -141,7 +141,7 @@ Options:
 	}
 
 	// Start goroutines to dispatch job.
-	logger.Info("dispatching jobs, "rate", *reqRate, "burst" *burstRate)
+	logger.Info("dispatching jobs", "rate", *reqRate, "burst", *burstRate)
 	for i := 0; i < *workers; i++ {
 		g.Go(func() error {
 			return dispatch(ctx, logger, lim, randomDelay, c, *j.ID)
