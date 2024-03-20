@@ -1,4 +1,4 @@
-module github.com/hashicorp/team-nomad/tools/nomad-load
+module github.com/hashicorp/nomad-bench/tools/nomad-load
 
 go 1.21.1
 
