@@ -120,13 +120,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	var rng *rand.Rand
+	lim := rate.NewLimiter(rate.Limit(*reqRate), *burstRate)
+
 	// Start goroutines to dispatch job.
 	logger.Info("dispatching jobs", "rate", *reqRate, "burst", *burstRate)
-	lim := rate.NewLimiter(rate.Limit(*reqRate), *burstRate)
-	rng := rand.New(rand.NewPCG(*seed1, *seed2))
+	if *randomize {
+		rng = rand.New(rand.NewPCG(*seed1, *seed2))
+		logger.Info("randomized dispatch delay", "seed", []uint64{*seed1, *seed2})
+	}
 	for i := 0; i < *workers; i++ {
 		g.Go(func() error {
-			return dispatch(ctx, logger, lim, *randomize, rng, c, *j.ID)
+			return dispatch(ctx, logger, lim, rng, c, *j.ID)
 		})
 	}
 
@@ -138,7 +143,7 @@ func main() {
 	}
 }
 
-func dispatch(ctx context.Context, logger hclog.Logger, lim *rate.Limiter, randomDelay bool, rng *rand.Rand, client *api.Client, jobID string) error {
+func dispatch(ctx context.Context, logger hclog.Logger, lim *rate.Limiter, rng *rand.Rand, client *api.Client, jobID string) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -152,7 +157,7 @@ func dispatch(ctx context.Context, logger hclog.Logger, lim *rate.Limiter, rando
 		}
 		time.Sleep(r.Delay())
 
-		if randomDelay {
+		if rng != nil {
 			time.Sleep(time.Duration(rng.IntN(1000)) * time.Millisecond)
 		}
 
