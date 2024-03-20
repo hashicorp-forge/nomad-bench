@@ -14,13 +14,22 @@ job "${terraform_job_name}" {
 
       config {
         image   = "laoqui/nomad-load:latest"
-        command = "nomad-load"
-        args = [
-          "-port=#{NOMAD_PORT_nomad_load}",
-          "-rate=1",
-          "-workers=10",
-        ]
-        ports = ["nomad-load"]
+        command = "/bin/bash"
+        args    = ["#{NOMAD_TASK_DIR}/script.sh"]
+        ports   = ["nomad-load"]
+      }
+
+      template {
+        data        = <<EOF
+#!/usr/bin/env bash
+
+timeout 60 nomad-load -port={{env "NOMAD_PORT_nomad_load"}} -rate=1 -workers=100
+sleep 10
+timeout 60 nomad-load -port={{env "NOMAD_PORT_nomad_load"}} -rate=10 -workers=100
+sleep 10
+exit 0
+EOF
+        destination = "#{NOMAD_TASK_DIR}/script.sh"
       }
 
       env {
@@ -32,6 +41,11 @@ job "${terraform_job_name}" {
 
     task "telegraf" {
       driver = "docker"
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = true
+      }
 
       config {
         image = "telegraf:1.30.0"
