@@ -141,8 +141,7 @@ Options:
 	}
 
 	// Start goroutines to dispatch job.
-	stdLogger := logger.StandardLogger(&hclog.StandardLoggerOptions{InferLevels: true})
-	stdLogger.Printf("[INFO] dispatching %v jobs at a rate of %v per second with bursts up to %v", *workers, *reqRate, *burstRate)
+	logger.Info("dispatching jobs, "rate", *reqRate, "burst" *burstRate)
 	for i := 0; i < *workers; i++ {
 		g.Go(func() error {
 			return dispatch(ctx, logger, lim, randomDelay, c, *j.ID)
