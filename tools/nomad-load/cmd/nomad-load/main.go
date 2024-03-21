@@ -21,7 +21,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
-	"github.com/hashicorp/nomad-bench/tools/nomad-load/internal"
+	"github.com/hashicorp/nomad-bench/tools/nomad-load/job"
 	"github.com/hashicorp/nomad-bench/tools/nomad-load/version"
 )
 
@@ -33,15 +33,10 @@ var (
 	reqRate   = flag.Float64("rate", 10, "The rate of constant job dispatches per second")
 	burstRate = flag.Int("burst", 1, "The burst rate of constant job dispatches")
 	randomize = flag.Bool("random", false, "Should the rate at which the jobs are dispatched be randomized?")
+	spread    = flag.Bool("spread", false, "Should the jobs be spread across the datacenters?")
 	seed1     = flag.Uint64("seed1", rand.Uint64(), "First uint64 of the PCG seed used by the random number generator")
 	seed2     = flag.Uint64("seed2", rand.Uint64(), "Second uint64 of the PCG seed used by the random number generator")
 	workers   = flag.Int("workers", 10*runtime.NumCPU(), "The number of workers to use")
-	job       = flag.String("job", "batch", `Job to dispatch.
-Available options are:
- - batch (dispatches an empty batch job)
- - spread (batch job with spread over node.datacenter attribute)
-`,
-	)
 
 	logLevel = flag.String("log-level", "DEBUG", "The log level to use")
 	ver      = flag.Bool("version", false, "Prints out the version")
@@ -60,14 +55,6 @@ func main() {
 		Level:           hclog.LevelFromString(*logLevel),
 		IncludeLocation: true,
 	})
-
-	// Parse job flag
-	jobspec, ok := internal.JobMap[*job]
-	if !ok {
-		logger.Error("invalid job type", "job", *job)
-		flag.Usage()
-		os.Exit(1)
-	}
 
 	// Start metrics collection.
 	promHandler := promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{
@@ -104,6 +91,13 @@ func main() {
 	c, err := api.NewClient(config)
 	if err != nil {
 		logger.Error("failed to start Nomad client", "error", err)
+		os.Exit(1)
+	}
+
+	// read the jobspec template and render it
+	jobspec, err := job.Render(job.Conf{Spread: *spread})
+	if err != nil {
+		logger.Error("failed to render job", "error", err)
 		os.Exit(1)
 	}
 
