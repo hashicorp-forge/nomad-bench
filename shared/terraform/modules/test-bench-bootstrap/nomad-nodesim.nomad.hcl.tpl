@@ -43,7 +43,7 @@ node {
 EOH
 
         change_mode = "restart"
-        destination = "$${NOMAD_TASK_DIR}/config.hcl"
+        destination = "#{NOMAD_TASK_DIR}/config.hcl"
       }
 
       resources {
@@ -81,7 +81,7 @@ node {
 EOH
 
         change_mode = "restart"
-        destination = "$${NOMAD_TASK_DIR}/config.hcl"
+        destination = "#{NOMAD_TASK_DIR}/config.hcl"
       }
 
       resources {
