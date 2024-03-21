@@ -29,28 +29,30 @@ var (
 	nomadAddr = flag.String("nomad-addr", "", "The address of the Nomad server")
 	httpAddr  = flag.String("http-addr", "0.0.0.0", "The address to bind the HTTP server to")
 	httpPort  = flag.String("http-port", "8080", "The port to bind the HTTP server to")
+
 	reqRate   = flag.Float64("rate", 10, "The rate of constant job dispatches per second")
 	burstRate = flag.Int("burst", 1, "The burst rate of constant job dispatches")
+	randomize = flag.Bool("random", false, "Should the rate at which the jobs are dispatched be randomized?")
+	seed1     = flag.Uint64("seed1", rand.Uint64(), "First uint64 of the PCG seed used by the random number generator")
+	seed2     = flag.Uint64("seed2", rand.Uint64(), "Second uint64 of the PCG seed used by the random number generator")
 	workers   = flag.Int("workers", 10*runtime.NumCPU(), "The number of workers to use")
-	job       = flag.String("job", "batch", "What job to dispatch. Available options are: batch (default), service, system, and periodic")
-	logLevel  = flag.String("log-level", "DEBUG", "The log level to use")
+	job       = flag.String("job", "batch", `Job to dispatch.
+Available options are:
+ - batch (dispatches an empty batch job)
+ - spread (batch job with spread over node.datacenter attribute)
+`,
+	)
+
+	logLevel = flag.String("log-level", "DEBUG", "The log level to use")
+	ver      = flag.Bool("version", false, "Prints out the version")
 )
 
 func main() {
 	flag.Parse()
 
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, `Usage: ./nomad-load [options] [command]
-
-Commands:
-  constant   Dispatches a constant rate of jobs
-  sometimes  Dispatches jobs at with a random delay
-
-  version    Prints the version of the tool
-
-Options:
-`)
-		flag.PrintDefaults()
+	if *ver {
+		fmt.Printf("Version: %s\nCommit: %s\n", version.VERSION, version.GITCOMMIT)
+		os.Exit(0)
 	}
 
 	logger := hclog.NewInterceptLogger(&hclog.LoggerOptions{
@@ -59,37 +61,12 @@ Options:
 		IncludeLocation: true,
 	})
 
-	command := flag.Args()
-	if len(command) != 1 {
+	// Parse job flag
+	jobspec, ok := internal.JobMap[*job]
+	if !ok {
+		logger.Error("invalid job type", "job", *job)
 		flag.Usage()
 		os.Exit(1)
-	}
-
-	// Parse job flag
-	var jobSpec string
-	switch *job {
-	case "batch":
-		jobSpec = internal.DispatchBatchJob
-	default:
-		logger.Error("invalid job type", "job", *job)
-		os.Exit(1)
-	}
-
-	var lim *rate.Limiter
-	var randomDelay bool
-
-	switch command[0] {
-	case "constant":
-		lim = rate.NewLimiter(rate.Limit(*reqRate), *burstRate)
-	case "sometimes":
-		// TODO: Is there a better way to make the limiter more random?
-		lim = rate.NewLimiter(rate.Limit(*reqRate), *burstRate)
-		randomDelay = true
-	case "version":
-		fmt.Printf("Version: %s\nCommit: %s\n", version.VERSION, version.GITCOMMIT)
-		os.Exit(0)
-	default:
-
 	}
 
 	// Start metrics collection.
@@ -103,7 +80,10 @@ Options:
 		logger.Error("failed to start Prometheus sink", "error", err)
 		os.Exit(1)
 	}
-	metrics.NewGlobal(metrics.DefaultConfig("nomad-load"), promSink)
+	_, err = metrics.NewGlobal(metrics.DefaultConfig("nomad-load"), promSink)
+	if err != nil {
+		logger.Error("failed to register Prometheus metrics", "error", err)
+	}
 
 	// Create errgroup to watch goroutines.
 	g, ctx := errgroup.WithContext(context.Background())
@@ -127,7 +107,7 @@ Options:
 		os.Exit(1)
 	}
 
-	r := strings.NewReader(jobSpec)
+	r := strings.NewReader(jobspec)
 	j, err := jobspec2.Parse("job.nomad.hcl", r)
 	if err != nil {
 		logger.Error("failed to parse job", "error", err)
@@ -140,11 +120,18 @@ Options:
 		os.Exit(1)
 	}
 
+	var rng *rand.Rand
+	lim := rate.NewLimiter(rate.Limit(*reqRate), *burstRate)
+
 	// Start goroutines to dispatch job.
 	logger.Info("dispatching jobs", "rate", *reqRate, "burst", *burstRate)
+	if *randomize {
+		rng = rand.New(rand.NewPCG(*seed1, *seed2))
+		logger.Info("randomized dispatch delay", "seed", []uint64{*seed1, *seed2})
+	}
 	for i := 0; i < *workers; i++ {
 		g.Go(func() error {
-			return dispatch(ctx, logger, lim, randomDelay, c, *j.ID)
+			return dispatch(ctx, logger, lim, rng, c, *j.ID)
 		})
 	}
 
@@ -156,7 +143,7 @@ Options:
 	}
 }
 
-func dispatch(ctx context.Context, logger hclog.Logger, lim *rate.Limiter, randomDelay bool, client *api.Client, jobID string) error {
+func dispatch(ctx context.Context, logger hclog.Logger, lim *rate.Limiter, rng *rand.Rand, client *api.Client, jobID string) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -170,8 +157,8 @@ func dispatch(ctx context.Context, logger hclog.Logger, lim *rate.Limiter, rando
 		}
 		time.Sleep(r.Delay())
 
-		if randomDelay {
-			time.Sleep(time.Duration(rand.IntN(1000)) * time.Millisecond)
+		if rng != nil {
+			time.Sleep(time.Duration(rng.IntN(1000)) * time.Millisecond)
 		}
 
 		_, _, err := client.Jobs().Dispatch(jobID, nil, nil, "", nil)
