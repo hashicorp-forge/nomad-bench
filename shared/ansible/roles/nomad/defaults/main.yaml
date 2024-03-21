@@ -13,6 +13,7 @@ nomad_log_level: "DEBUG"
 nomad_log_json: true
 nomad_log_include_location: true
 nomad_log_file: "/var/log/nomad.log"
+nomad_enable_debug: false
 
 nomad_server_enabled: false
 nomad_server_bootstrap_expect: 3
