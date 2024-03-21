@@ -51,6 +51,7 @@ job "influxdb" {
         ports = ["influxdb"]
         args = [
           "--http-bind-address=0.0.0.0:8086",
+          "--session-length=600",
         ]
       }
 
@@ -73,7 +74,7 @@ DOCKER_INFLUXDB_INIT_PASSWORD={{.admin_password}}
 DOCKER_INFLUXDB_INIT_ADMIN_TOKEN={{.admin_token}}
 {{end}}
 EOF
-        destination = "${NOMAD_SECRET_DIR}/env"
+        destination = "${NOMAD_SECRETS_DIR}/env"
         env         = true
       }
 
