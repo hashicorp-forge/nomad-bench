@@ -24,9 +24,9 @@ job "${terraform_job_name}" {
         command    = "nomad-nodesim"
         args = [
           "-node-num=50",
-          "-work-dir=$${NOMAD_TASK_DIR}",
-          "-config=$${NOMAD_TASK_DIR}/config.hcl",
-%{ for addr in terraform_nodesim_job_servers ~}
+          "-work-dir=#{NOMAD_TASK_DIR}",
+          "-config=#{NOMAD_TASK_DIR}/config.hcl",
+%{ for addr in terraform_job_servers ~}
           "-server-addr=${addr}",
 %{ endfor ~}
         ]
@@ -62,9 +62,9 @@ EOH
         command    = "nomad-nodesim"
         args = [
           "-node-num=50",
-          "-work-dir=$${NOMAD_TASK_DIR}",
-          "-config=$${NOMAD_TASK_DIR}/config.hcl",
-%{ for addr in terraform_nodesim_job_servers ~}
+          "-work-dir=#{NOMAD_TASK_DIR}",
+          "-config=#{NOMAD_TASK_DIR}/config.hcl",
+%{ for addr in terraform_job_servers ~}
           "-server-addr=${addr}",
 %{ endfor ~}
         ]
@@ -81,7 +81,7 @@ node {
 EOH
 
         change_mode = "restart"
-        destination = "#{NOMAD_TASK_DIR}/config.hcl"
+        destination = "$${NOMAD_TASK_DIR}/config.hcl"
       }
 
       resources {
