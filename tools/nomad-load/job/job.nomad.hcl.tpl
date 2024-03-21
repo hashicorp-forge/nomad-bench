@@ -1,6 +1,8 @@
 job "dispatch" {
   type = "batch"
 
+  count = {{ .Count }}
+
   {{ if .Spread }}
   spread {
     attribute = "${node.datacenter}"
@@ -10,9 +12,11 @@ job "dispatch" {
 
   parameterized {}
 
-  group "dispatch" {
+  {{ range $i, $a := .Groups }}
+  group "dispatch{{$i}}" {
     task "dispatch" {
       driver = "mock"
     }
   }
+  {{ end }}
 }

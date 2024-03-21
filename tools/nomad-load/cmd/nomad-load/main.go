@@ -30,10 +30,12 @@ var (
 	httpAddr  = flag.String("http-addr", "0.0.0.0", "The address to bind the HTTP server to")
 	httpPort  = flag.String("http-port", "8080", "The port to bind the HTTP server to")
 
+	count     = flag.Int("count", 1, "The count number per job (number of allocations is count * groups)")
+	groups    = flag.Int("groups", 1, "The number of groups to create per job")
+	spread    = flag.Bool("spread", false, "Should the jobs be spread across the datacenters?")
 	reqRate   = flag.Float64("rate", 10, "The rate of constant job dispatches per second")
 	burstRate = flag.Int("burst", 1, "The burst rate of constant job dispatches")
 	randomize = flag.Bool("random", false, "Should the rate at which the jobs are dispatched be randomized?")
-	spread    = flag.Bool("spread", false, "Should the jobs be spread across the datacenters?")
 	seed1     = flag.Uint64("seed1", rand.Uint64(), "First uint64 of the PCG seed used by the random number generator")
 	seed2     = flag.Uint64("seed2", rand.Uint64(), "Second uint64 of the PCG seed used by the random number generator")
 	workers   = flag.Int("workers", 10*runtime.NumCPU(), "The number of workers to use")
@@ -94,8 +96,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	jobspecConf := job.Conf{
+		Spread:     *spread,
+		Count:      *count,
+		GroupCount: *groups,
+	}
+
 	// read the jobspec template and render it
-	jobspec, err := job.Render(job.Conf{Spread: *spread})
+	jobspec, err := job.Render(jobspecConf)
 	if err != nil {
 		logger.Error("failed to render job", "error", err)
 		os.Exit(1)
