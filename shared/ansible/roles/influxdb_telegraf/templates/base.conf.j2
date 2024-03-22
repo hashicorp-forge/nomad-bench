@@ -1,8 +1,12 @@
+[agent]
+  interval = "{{ influxdb_telegraf_agent_interval }}"
+
 {% if influxdb_telegraf_input_nomad_enabled -%}
 [[inputs.nomad]]
-  url    = "{{ influxdb_telegraf_input_nomad_url }}"
+  interval = "{{ influxdb_telegraf_input_nomad_interval }}"
+  url      = "{{ influxdb_telegraf_input_nomad_url }}"
   {% if influxdb_telegraf_input_nomad_tls_ca != "" -%}
-  tls_ca = "{{ influxdb_telegraf_input_nomad_tls_ca }}"
+  tls_ca   = "{{ influxdb_telegraf_input_nomad_tls_ca }}"
   {% endif -%}
 {% endif %}
 
@@ -30,7 +34,7 @@
 [[inputs.net]]
 
 [[inputs.tail]]
-  files              = ["{{ influxdb_telegraf_inout_nomad_log_file }}"]
+  files              = ["{{ influxdb_telegraf_input_nomad_log_file }}"]
   data_format        = "json"
   json_string_fields = ["@level", "@module", "@message", "@caller"]
   json_time_key      = "@timestamp"
