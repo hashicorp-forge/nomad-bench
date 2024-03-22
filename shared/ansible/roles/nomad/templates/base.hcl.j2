@@ -6,6 +6,8 @@ log_json             = {{ nomad_log_json | lower }}
 log_include_location = {{ nomad_log_include_location | lower }}
 log_file             = "{{ nomad_log_file }}"
 
+enable_debug = {{ nomad_enable_debug | lower }}
+
 limits {
   https_handshake_timeout   = "{{ nomad_limits_https_handshake_timeout }}"
   http_max_conns_per_client = {{ nomad_limits_http_max_conns_per_client }}
