@@ -1,7 +1,5 @@
 job "dispatch" {
-  type = "batch"
-
-  count = {{ .Count }}
+  type = "{{ .JobType }}"
 
   {{ if .Spread }}
   spread {
@@ -10,10 +8,9 @@ job "dispatch" {
   }
   {{ end }}
 
-  parameterized {}
-
   {{ range $i, $a := .Groups }}
   group "dispatch{{$i}}" {
+    count = {{ .Count }}
     task "dispatch" {
       driver = "mock"
     }

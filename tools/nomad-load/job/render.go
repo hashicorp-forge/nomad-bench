@@ -10,6 +10,7 @@ import (
 var jobTpl string
 
 type Conf struct {
+	JobType    string
 	Spread     bool
 	Count      int
 	GroupCount int

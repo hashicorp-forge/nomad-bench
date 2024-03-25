@@ -30,6 +30,7 @@ var (
 	httpAddr  = flag.String("http-addr", "0.0.0.0", "The address to bind the HTTP server to")
 	httpPort  = flag.String("http-port", "8080", "The port to bind the HTTP server to")
 
+	jobType   = flag.String("type", "batch", "The type of job to create (batch or service)")
 	count     = flag.Int("count", 1, "The count number per job (number of allocations is count * groups)")
 	groups    = flag.Int("groups", 1, "The number of groups to create per job")
 	spread    = flag.Bool("spread", false, "Should the jobs be spread across the datacenters?")
@@ -97,6 +98,7 @@ func main() {
 	}
 
 	jobspecConf := job.Conf{
+		JobType:    *jobType,
 		Spread:     *spread,
 		Count:      *count,
 		GroupCount: *groups,
