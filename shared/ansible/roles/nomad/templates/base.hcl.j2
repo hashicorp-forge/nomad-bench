@@ -21,6 +21,13 @@ telemetry {
   publish_allocation_metrics = {{ nomad_telemetry_publish_allocation_metrics | lower }}
   publish_node_metrics       = {{ nomad_telemetry_publish_node_metrics | lower }}
   prometheus_metrics         = {{ nomad_telemetry_prometheus_metrics | lower }}
+
+  {% if nomad_telemetry_in_memory_collection_interval != "" %}
+  in_memory_collection_interval = "{{ nomad_telemetry_in_memory_collection_interval }}"
+  {% endif %}
+  {% if nomad_telemetry_in_memory_retention_period != "" %}
+  in_memory_retention_period = "{{ nomad_telemetry_in_memory_retention_period }}"
+  {% endif %}
 }
 
 acl {
