@@ -183,6 +183,7 @@ func (t *Transformer) transformFile(data []byte, agentName, agentRegion string) 
 
 		t.encodeTags(enc, sample.DisplayLabels, agentName, agentRegion)
 
+		enc.lpe.AddField("count", lineprotocol.MustNewValue(int64(sample.Count)))
 		enc.lpe.AddField("rate", lineprotocol.MustNewValue(sample.Rate))
 		enc.lpe.AddField("sum", lineprotocol.MustNewValue(sample.Sum))
 		enc.lpe.AddField("stddev", lineprotocol.MustNewValue(sample.Stddev))
