@@ -99,6 +99,18 @@
   notify:
     - "restart_nomad"
 
+- name: "create_additional_nomad_config_file"
+  become: true
+  ansible.builtin.copy:
+    content: "{{ nomad_config_extra }}"
+    dest: "{{ nomad_config_dir }}/99-extra.hcl"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0655"
+  when: nomad_config_extra != ""
+  notify:
+    - "restart_nomad"
+
 - name: "host_volume"
   ansible.builtin.include_tasks:
     file: host_volume.yaml
