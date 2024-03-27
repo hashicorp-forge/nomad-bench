@@ -30,6 +30,9 @@ job "${terraform_job_name}" {
           "-server-addr=${addr}",
 %{ endfor ~}
         ]
+        volumes = [
+          "/sys/fs/cgroup:/sys/fs/cgroup",
+        ]
       }
 
       template {
@@ -67,6 +70,9 @@ EOH
 %{ for addr in terraform_job_servers ~}
           "-server-addr=${addr}",
 %{ endfor ~}
+        ]
+        volumes = [
+          "/sys/fs/cgroup:/sys/fs/cgroup",
         ]
       }
 
