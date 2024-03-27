@@ -22,8 +22,11 @@ var jobTpl string
 
 type JobConf struct {
 	JobType    string
+	Driver     string
+	Echo       string
 	Spread     bool
 	Count      int
+	Worker     int
 	GroupCount int
 	Groups     []struct{}
 }
@@ -36,13 +39,25 @@ type TestJob struct {
 	logger  hclog.Logger
 }
 
-func NewJob(jobConf *JobConf, client *api.Client, logger hclog.Logger) (*TestJob, error) {
+// newEcho returns a new echo string with the current time, used to distinguish
+// between different job updates
+func newEcho() string {
+	return fmt.Sprintf("%v hello world!", time.Now().Local().Format("2006-01-02 15:04:05"))
+}
+
+func NewJob(jobConf *JobConf, client *api.Client, logger hclog.Logger) *TestJob {
+	return &TestJob{jobConf, client, nil, logger}
+}
+
+func (j *TestJob) render(worker int) (*api.Job, error) {
 	// Parse the job template
 	t := template.Must(template.New("jobTpl").Parse(jobTpl))
-	jobConf.Groups = make([]struct{}, jobConf.GroupCount)
+	j.Conf.Groups = make([]struct{}, j.Conf.GroupCount)
+	j.Conf.Echo = newEcho()
+	j.Conf.Worker = worker
 
 	buf := new(bytes.Buffer)
-	err := t.Execute(buf, jobConf)
+	err := t.Execute(buf, j.Conf)
 	if err != nil {
 		return nil, err
 	}
@@ -50,16 +65,17 @@ func NewJob(jobConf *JobConf, client *api.Client, logger hclog.Logger) (*TestJob
 	// Parse the rendered jobspec
 	jobspec := buf.String()
 	r := strings.NewReader(jobspec)
-	parsed, err := jobspec2.Parse("job.nomad.hcl", r)
-	if err != nil {
-		return nil, err
-	}
-
-	return &TestJob{jobConf, client, parsed, logger}, nil
+	return jobspec2.Parse("job.nomad.hcl", r)
 }
 
-func (j *TestJob) RegisterBatch(jobspec string) error {
-	_, _, err := j.client.Jobs().Register(j.payload, nil)
+func (j *TestJob) RegisterBatch() error {
+	var err error
+	j.payload, err = j.render(0)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = j.client.Jobs().Register(j.payload, nil)
 	if err != nil {
 		return err
 	}
@@ -67,7 +83,7 @@ func (j *TestJob) RegisterBatch(jobspec string) error {
 	return nil
 }
 
-func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, allocs chan *api.Allocation) error {
+func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, worker int, update bool, jobType string) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -85,8 +101,13 @@ func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, al
 			time.Sleep(time.Duration(rng.IntN(1000)) * time.Millisecond)
 		}
 
-		switch j.Conf.JobType {
-		case "batch":
+		parsed, err := j.render(worker)
+		if err != nil {
+			return err
+		}
+
+		switch jobType {
+		case JobTypeBatch:
 			_, _, err := j.client.Jobs().Dispatch(*j.payload.ID, nil, nil, "", nil)
 			if err != nil {
 				metrics.IncrCounter([]string{"dispatches_error"}, 1)
@@ -94,16 +115,16 @@ func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, al
 				continue
 			}
 			metrics.IncrCounter([]string{"dispatches"}, 1)
-		case "service":
-			_, _, err := j.client.Jobs().Register(*&j.payload, nil)
+		case JobTypeService:
+			_, _, err = j.client.Jobs().Register(parsed, nil)
 			if err != nil {
-				metrics.IncrCounter([]string{"dispatches_error"}, 1)
-				j.logger.Error("failed to dispatch job", "error", err)
+				metrics.IncrCounter([]string{"registration_error"}, 1)
+				j.logger.Error("failed to register job", "error", err)
 				continue
 			}
-			metrics.IncrCounter([]string{"dispatches"}, 1)
+			metrics.IncrCounter([]string{"registrations"}, 1)
 		default:
-			return fmt.Errorf("job type %s not supported", j.Conf.JobType)
+			j.logger.Error("incorrect job type", "type", jobType)
 		}
 	}
 }
