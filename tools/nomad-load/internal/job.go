@@ -22,7 +22,6 @@ var jobTpl string
 
 type JobConf struct {
 	JobType    string
-	Driver     string
 	Echo       string
 	Spread     bool
 	Count      int

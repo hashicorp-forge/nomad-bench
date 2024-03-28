@@ -28,7 +28,6 @@ var (
 	httpPort  = flag.String("http-port", "8080", "The port to bind the HTTP server to")
 
 	jobType   = flag.String("type", internal.JobTypeBatch, "The type of job to create (batch or service)")
-	jobDriver = flag.String("driver", internal.JobDriverDocker, "The driver to use for the job (mock or docker)")
 	updates   = flag.Bool("updates", false, "Should the service jobs be continuously updated?")
 	count     = flag.Int("count", 1, "The count number per job (number of allocations is count * groups)")
 	groups    = flag.Int("groups", 1, "The number of groups to create per job")
@@ -98,7 +97,6 @@ func main() {
 
 	jobConf := &internal.JobConf{
 		JobType:    *jobType,
-		Driver:     *jobDriver,
 		Spread:     *spread,
 		Count:      *count,
 		GroupCount: *groups,

@@ -1,6 +1,5 @@
 {{ $w := .Worker }}
 {{ $c := .Count }}
-{{ $d := .Driver }}
 {{ $e := .Echo }}
 
 job "test_job_{{$w}}_{{$c}}" {
@@ -21,20 +20,9 @@ job "test_job_{{$w}}_{{$c}}" {
   {{ range $i, $a := .Groups }}
   group "test_job_group_{{$w}}_{{$c}}_{{$i}}" {
     count = {{ $c }}
-    {{ if eq $d "mock" }}
     task "test_job_task_{{$w}}_{{$c}}_{{$i}}" {
       driver = "mock"
     }
-    {{ else if eq $d "docker" }}
-    task "echo" {
-      driver = "docker"
-
-      config {
-        image = "hashicorp/http-echo"
-        args  = ["-text", "{{ $e }}"]
-      }
-    }
-    {{ end }}
   }
   {{ end }}
 }
