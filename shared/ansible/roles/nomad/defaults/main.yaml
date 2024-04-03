@@ -3,6 +3,7 @@ nomad_pkg_version: "" # defaults to latest
 nomad_user: root
 nomad_group: root
 nomad_config_dir: "/etc/nomad.d/"
+nomad_config_extra: ""
 
 nomad_install_dir: "/usr/bin"
 nomad_custom_binary_source: ""
