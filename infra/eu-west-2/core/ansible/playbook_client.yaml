@@ -21,6 +21,8 @@
           docker:
             config:
               allow_privileged: true
+              volumes:
+                enabled: true
           raw_exec:
             config:
               enabled: true
