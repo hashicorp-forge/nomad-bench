@@ -75,11 +75,7 @@ func (j *TestJob) RegisterBatch() error {
 	}
 
 	_, _, err = j.client.Jobs().Register(j.payload, nil)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, worker int, update bool, jobType string) error {
@@ -123,7 +119,7 @@ func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, wo
 			}
 			metrics.IncrCounter([]string{"registrations"}, 1)
 		default:
-			j.logger.Error("incorrect job type", "type", jobType)
+			return fmt.Errorf("incorrect job type %s", jobType)
 		}
 	}
 }
