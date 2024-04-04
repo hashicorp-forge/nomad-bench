@@ -3,6 +3,7 @@ package influxdb
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -24,7 +25,14 @@ type Loader struct {
 
 func NewLoader(logger hclog.Logger, cfg *config.Load, path string) *Loader {
 
-	writeAPIClient := influxdb2.NewClient(cfg.InfluxDB.ServerURL, cfg.InfluxDB.AuthToken).
+	writeAPIClient := influxdb2.NewClientWithOptions(
+		cfg.InfluxDB.ServerURL,
+		cfg.InfluxDB.AuthToken,
+		influxdb2.DefaultOptions().SetTLSConfig(
+			&tls.Config{
+				InsecureSkipVerify: true,
+			},
+		)).
 		WriteAPIBlocking(cfg.InfluxDB.Organization, cfg.InfluxDB.Bucket)
 
 	logger = logger.Named("load.influxdb").

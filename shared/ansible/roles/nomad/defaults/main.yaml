@@ -3,6 +3,7 @@ nomad_pkg_version: "" # defaults to latest
 nomad_user: root
 nomad_group: root
 nomad_config_dir: "/etc/nomad.d/"
+nomad_config_extra: ""
 
 nomad_install_dir: "/usr/bin"
 nomad_custom_binary_source: ""
@@ -35,6 +36,8 @@ nomad_limits_rpc_max_conns_per_client: 100
 nomad_telemetry_publish_allocation_metrics: false
 nomad_telemetry_publish_node_metrics: false
 nomad_telemetry_prometheus_metrics: false
+nomad_telemetry_in_memory_collection_interval: ""
+nomad_telemetry_in_memory_retention_period: ""
 
 nomad_tls_enable: false
 nomad_tls_ca_cert: ""

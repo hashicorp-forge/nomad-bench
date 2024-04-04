@@ -61,6 +61,10 @@ server {
     listen 8086;
     server_name _;
 
+    # Increase the size from the default 1, so bulk uploads can work with the
+    # standard line protocol sharding size.
+    client_max_body_size 10M;
+
     ssl on;
     ssl_certificate         /etc/nginx/server.crt;
     ssl_certificate_key     /etc/nginx/server.key;
