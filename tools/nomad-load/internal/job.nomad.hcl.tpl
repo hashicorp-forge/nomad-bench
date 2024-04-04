@@ -2,6 +2,7 @@
 {{ $c := .Count }}
 {{ $d := .Driver }}
 {{ $e := .Echo }}
+{{ $t := .JobType }}
 
 job "test_job_{{$w}}_{{$c}}" {
   type = "{{ .JobType }}"
@@ -28,10 +29,18 @@ job "test_job_{{$w}}_{{$c}}" {
     {{ else if eq $d "docker" }}
     task "echo" {
       driver = "docker"
+      {{ if eq $t "service" }}
       config {
-        image = "hashicorp/http-echo"
+        image = "hashicorp/http-echo:1.0.0"
         args  = ["-text", "{{ $e }}"]
       }
+      {{ else if eq $t "batch" }}
+      config {
+        image   = "busybox:1.36.1"
+        command = "echo"
+        args = ["{{ $e }}"]
+      }
+      {{ end }}
     }
     {{ end }}
   }
