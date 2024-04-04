@@ -70,7 +70,7 @@ module "core_cluster" {
   source = "../../../shared/terraform/modules/nomad-cluster"
 
   project_name         = var.project_name
-  server_count         = 1
+  server_count         = 3
   server_instance_type = "t3.medium"
   client_count         = 2
   client_instance_type = "t3.medium"

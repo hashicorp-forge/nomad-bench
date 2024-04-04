@@ -5,7 +5,7 @@
     - role: nomad
       vars:
         nomad_server_enabled: true
-        nomad_server_bootstrap_expect: 1
+        nomad_server_bootstrap_expect: 3
         nomad_server_join_retry_join: ["{{ terraform_nomad_server_join }}"]
         nomad_limits_http_max_conns_per_client: 0
         nomad_limits_rpc_max_conns_per_client: 0
