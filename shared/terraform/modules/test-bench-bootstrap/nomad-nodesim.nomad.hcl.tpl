@@ -38,8 +38,9 @@ job "${terraform_job_name}" {
       template {
         data = <<EOH
 node {
+  datacenter = "dc1"
+
   options = {
-    "datacenter" = "dc1"
     "fingerprint.denylist" = "env_aws,env_gce,env_azure,env_digitalocean"
   }
 }
@@ -79,8 +80,9 @@ EOH
       template {
         data = <<EOH
 node {
+  datacenter = "dc2"
+
   options = {
-    "datacenter" = "dc2"
     "fingerprint.denylist" = "env_aws,env_gce,env_azure,env_digitalocean"
   }
 }
