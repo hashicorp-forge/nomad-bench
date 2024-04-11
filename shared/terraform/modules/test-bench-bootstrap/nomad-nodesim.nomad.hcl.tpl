@@ -26,6 +26,7 @@ job "${terraform_job_name}" {
           "-node-num=50",
           "-work-dir=#{NOMAD_TASK_DIR}",
           "-config=#{NOMAD_TASK_DIR}/config.hcl",
+          "-alloc-runner-type=real",
 %{ for addr in terraform_job_servers ~}
           "-server-addr=${addr}",
 %{ endfor ~}
@@ -52,7 +53,7 @@ EOH
 
       resources {
         cpu    = 150
-        memory = 256
+        memory = 512
       }
     }
 
@@ -68,6 +69,7 @@ EOH
           "-node-num=50",
           "-work-dir=#{NOMAD_TASK_DIR}",
           "-config=#{NOMAD_TASK_DIR}/config.hcl",
+          "-alloc-runner-type=real",
 %{ for addr in terraform_job_servers ~}
           "-server-addr=${addr}",
 %{ endfor ~}
@@ -94,7 +96,7 @@ EOH
 
       resources {
         cpu    = 150
-        memory = 256
+        memory = 512
       }
     }
   }
