@@ -23,9 +23,9 @@ job "${terraform_job_name}" {
         data        = <<EOF
 #!/usr/bin/env bash
 
-timeout 60 nomad-load -port={{env "NOMAD_PORT_nomad_load"}} -rate=1 -workers=100
+timeout 60 nomad-load -driver=mock -http-port={{env "NOMAD_PORT_nomad_load"}} -rate=1 -workers=100
 sleep 10
-timeout 60 nomad-load -port={{env "NOMAD_PORT_nomad_load"}} -rate=10 -workers=100
+timeout 60 nomad-load -driver=mock -http-port={{env "NOMAD_PORT_nomad_load"}} -rate=10 -workers=100
 sleep 10
 exit 0
 EOF

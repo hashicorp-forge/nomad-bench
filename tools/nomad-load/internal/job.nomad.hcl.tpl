@@ -24,7 +24,11 @@ job "test_job_{{$w}}_{{$c}}" {
     count = {{ $c }}
     {{ if eq $d "mock" }}
     task "test_job_task_{{$w}}_{{$c}}_{{$i}}" {
-      driver = "mock"
+      driver = "mock_driver"
+
+      config {
+        run_for = "10s"
+      }
     }
     {{ else if eq $d "docker" }}
     task "echo" {
