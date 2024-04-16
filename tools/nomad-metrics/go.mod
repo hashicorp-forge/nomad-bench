@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.184
 	github.com/hashicorp/go-hclog v1.6.2
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/hashicorp/nomad v1.7.3
+	github.com/hashicorp/nomad v1.7.6
 	github.com/hashicorp/nomad/api v0.0.0-20240116172050-bc039a7a8a22
 	github.com/influxdata/influxdb-client-go/v2 v2.13.0
 	github.com/influxdata/line-protocol/v2 v2.2.1
@@ -41,8 +41,8 @@ require (
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 )
