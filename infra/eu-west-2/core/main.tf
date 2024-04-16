@@ -2,7 +2,6 @@ locals {
   allowed_ips = [
     var.jrasell_ip,
     var.pkazmierczak_ip,
-    var.lgfa29_ip
   ]
   allowed_cidrs = [for ip in local.allowed_ips : "${ip}/32"]
 
