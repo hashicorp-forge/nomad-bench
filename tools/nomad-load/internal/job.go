@@ -104,13 +104,17 @@ func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, wo
 
 		switch jobType {
 		case JobTypeBatch:
-			_, _, err := j.client.Jobs().Dispatch(*j.payload.ID, nil, nil, "", nil)
+			dispatchResp, _, err := j.client.Jobs().Dispatch(*j.payload.ID, nil, nil, "", nil)
 			if err != nil {
 				metrics.IncrCounter([]string{"dispatches_error"}, 1)
 				j.logger.Error("failed to dispatch job", "error", err)
 				continue
 			}
+
 			metrics.IncrCounter([]string{"dispatches"}, 1)
+			j.logger.Info("successfully dispatched job",
+				"job_id", *j.payload.ID, "dispatch_job_id", dispatchResp.DispatchedJobID)
+
 		case JobTypeService:
 			_, _, err = j.client.Jobs().Register(parsed, nil)
 			if err != nil {
@@ -118,7 +122,10 @@ func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, wo
 				j.logger.Error("failed to register job", "error", err)
 				continue
 			}
+
 			metrics.IncrCounter([]string{"registrations"}, 1)
+			j.logger.Info("successfully registered job", "job_id", *parsed.ID)
+
 		default:
 			return fmt.Errorf("incorrect job type %s", jobType)
 		}
