@@ -1,10 +1,29 @@
 # nomad-bench
+This repository contains the code used to provision the infrastructure used to run tests and
+benchmarks against Nomad test clusters.
 
-This repository contains the code used to provision the infrastructure used to
-run tests and benchmarks against Nomad test clusters.
+Nomad test clusters are a set of servers with hundreds or thousands of simulated nodes, which are
+created using [`nomad-nodesim`][]. The Nomad server processes are not simulated and are expected to
+run on their own hosts, mimicking real world deployments. The Nomad servers are the focus of
+benchmarking and load testing.
 
-Nomad test clusters are a set of servers with hundreds or thousands of
-simulated nodes, which are created using [`nomad-nodesim`][].
+## Repository Structure
+The `nomad-bench` repository contains a number of components that work together to create the
+benchmarking and load testing environment.
+
+### Infra
+The [infra](./infra) directory contains code which manages and handles deployed cloud environments,
+and is partitioned by AWS region.
+
+### Shared
+The [shared](./shared) directory contains reusable Terraform modules, Ansible roles, and Nomad job
+specifications.
+
+### Tools
+The [tools](./tools) directory hosts our custom written Go tools which are aimed at running and
+recording benchmarking experiments. Please see the [nomad-load readme](./tools/nomad-load/README.md)
+and [nomad-metrics readme](./tools/nomad-metrics/README.md) files for more information on each tool
+and how to run it.
 
 ## Getting Started
 
