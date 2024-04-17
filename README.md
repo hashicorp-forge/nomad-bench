@@ -3,7 +3,7 @@ This repository contains the code used to provision the infrastructure used to r
 benchmarks against Nomad test clusters.
 
 Nomad test clusters are a set of servers with hundreds or thousands of simulated nodes, which are
-created using [`nomad-nodesim`][]. The Nomad server process are not simulated and are expected to
+created using [`nomad-nodesim`][]. The Nomad server processes are not simulated and are expected to
 run on their own hosts, mimicking real world deployments. The Nomad servers are the focus of
 benchmarking and load testing.
 
