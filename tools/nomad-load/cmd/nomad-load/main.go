@@ -5,20 +5,17 @@ import (
 	"flag"
 	"fmt"
 	"math/rand/v2"
-	"net/http"
 	"os"
 	"runtime"
 
 	"github.com/hashicorp/go-hclog"
-	"github.com/hashicorp/go-metrics"
-	metricsprom "github.com/hashicorp/go-metrics/prometheus"
 	"github.com/hashicorp/nomad/api"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
 	"github.com/hashicorp/nomad-bench/tools/nomad-load/internal"
+	"github.com/hashicorp/nomad-bench/tools/nomad-load/internal/http"
+	"github.com/hashicorp/nomad-bench/tools/nomad-load/internal/telemetry"
 	"github.com/hashicorp/nomad-bench/tools/nomad-load/version"
 )
 
@@ -58,34 +55,22 @@ func main() {
 		IncludeLocation: true,
 	})
 
-	// Start metrics collection.
-	promHandler := promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{
-		ErrorLog:           logger.Named("prometheus").StandardLogger(nil),
-		ErrorHandling:      promhttp.ContinueOnError,
-		DisableCompression: true,
-	})
-	promSink, err := metricsprom.NewPrometheusSink()
+	inMemorySink, err := telemetry.Setup()
 	if err != nil {
-		logger.Error("failed to start Prometheus sink", "error", err)
+		logger.Error("failed to setup telemetry", "error", err)
 		os.Exit(1)
 	}
-	_, err = metrics.NewGlobal(metrics.DefaultConfig("nomad-load"), promSink)
+
+	httpServer, err := http.NewServer(logger, *httpAddr, *httpPort, inMemorySink)
 	if err != nil {
-		logger.Error("failed to register Prometheus metrics", "error", err)
+		logger.Error("failed to setup HTTP server", "error", err)
+		os.Exit(1)
 	}
 
-	// Create errgroup to watch goroutines.
+	// Create errgroup to watch goroutines and start the HTTP server.
 	g, ctx := errgroup.WithContext(context.Background())
 
-	// Start HTTP server for metrics.
-	mux := http.NewServeMux()
-	mux.Handle("/v1/metrics", promHandler)
-
-	httpServer := &http.Server{
-		Addr:    fmt.Sprintf("%s:%s", *httpAddr, *httpPort),
-		Handler: mux,
-	}
-	g.Go(httpServer.ListenAndServe)
+	g.Go(httpServer.Server().ListenAndServe)
 
 	// Initialize Nomad client and register test job.
 	config := api.DefaultConfig()

@@ -5,6 +5,7 @@ go 1.22.1
 require (
 	github.com/hashicorp/go-hclog v1.6.2
 	github.com/hashicorp/go-metrics v0.5.3
+	github.com/hashicorp/go-msgpack v1.1.6-0.20240304204939-8824e8ccc35f
 	github.com/hashicorp/nomad v1.7.6
 	github.com/hashicorp/nomad/api v0.0.0-20240327201139-6ad648bec8e8
 	github.com/prometheus/client_golang v1.19.0
