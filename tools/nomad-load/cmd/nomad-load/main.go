@@ -113,7 +113,7 @@ func main() {
 		g.Go(func() error {
 			return job.Run(ctx, lim, rng, i, false, *jobType)
 		})
-		if *updates {
+		if *updates && *jobType == internal.JobTypeService {
 			ticker := time.NewTicker(*updatesFreq)
 			done := make(chan bool)
 
