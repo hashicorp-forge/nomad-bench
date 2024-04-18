@@ -19,6 +19,15 @@ locals {
       terraform_influxdb_bucket = influxdb-v2_bucket.clusters[name].name
     },
   ) }
+
+  nomad_gc_jobs = { for name, cluster in var.clusters : name => templatefile(
+    "${path.module}/nomad-gc.nomad.hcl.tpl",
+    {
+      terraform_job_name      = "nomad-gc-${name}"
+      terraform_job_namespace = nomad_namespace.nomad_bench.name
+      terraform_nomad_addr    = "http://${cluster.server_private_ips[0]}:4646"
+    },
+  ) }
 }
 
 resource "nomad_namespace" "nomad_bench" {
@@ -83,6 +92,37 @@ EOF
   provisioner "local-exec" {
     command = <<EOF
  rm -f ${path.root}/jobs/nomad-load-${each.key}.nomad.hcl
+ EOF
+    when    = destroy
+  }
+}
+
+resource "terraform_data" "nomad_jobs_gc" {
+  for_each = var.clusters
+
+  provisioner "local-exec" {
+    command = <<EOF
+mkdir -p ${path.root}/jobs/
+cat <<JOB > ${path.root}/jobs/nomad-gc-${each.key}.nomad.hcl
+# This file is created by Terraform, but not managed to allow for local edits.
+# It will not be recreated if deleted.
+#
+# Replace the resource to recreate this file.
+# WARNING: ALL CHANGES WILL BE LOST.
+#   terraform apply -replace 'module.bootstrap.terraform_data.nomad_jobs_gc["${each.key}"]'
+
+${local.nomad_gc_jobs[each.key]}
+JOB
+
+# Hack to get around how Terraform handles ther dollar sign.
+sed -i.bkp 's|#{|$${|g' ${path.root}/jobs/nomad-gc-${each.key}.nomad.hcl
+rm -f ${path.root}/jobs/nomad-gc-${each.key}.nomad.hcl.bkp
+EOF
+  }
+
+  provisioner "local-exec" {
+    command = <<EOF
+ rm -f ${path.root}/jobs/nomad-gc-${each.key}.nomad.hcl
  EOF
     when    = destroy
   }
