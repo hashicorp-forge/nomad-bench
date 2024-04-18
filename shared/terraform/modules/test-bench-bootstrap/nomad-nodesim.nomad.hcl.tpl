@@ -26,7 +26,7 @@ job "${terraform_job_name}" {
           "-node-num=50",
           "-work-dir=#{NOMAD_TASK_DIR}",
           "-config=#{NOMAD_TASK_DIR}/config.hcl",
-          "-alloc-runner-type=real",
+          "-alloc-runner-type=sim",
 %{ for addr in terraform_job_servers ~}
           "-server-addr=${addr}",
 %{ endfor ~}
