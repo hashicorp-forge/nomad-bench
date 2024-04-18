@@ -79,7 +79,7 @@ func (j *TestJob) RegisterBatch() error {
 	return err
 }
 
-func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, worker int, update bool, jobType string) error {
+func (j *TestJob) DispatchBatch(ctx context.Context, lim *rate.Limiter, rng *rand.Rand) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -97,37 +97,50 @@ func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, wo
 			time.Sleep(time.Duration(rng.IntN(1000)) * time.Millisecond)
 		}
 
-		parsed, err := j.render(worker)
+		dispatchResp, _, err := j.client.Jobs().Dispatch(*j.payload.ID, nil, nil, "", nil)
 		if err != nil {
-			return err
+			metrics.IncrCounter([]string{"dispatches_error"}, 1)
+			j.logger.Error("failed to dispatch job", "error", err)
+			continue
 		}
 
-		switch jobType {
-		case JobTypeBatch:
-			dispatchResp, _, err := j.client.Jobs().Dispatch(*j.payload.ID, nil, nil, "", nil)
+		metrics.IncrCounter([]string{"dispatches"}, 1)
+		j.logger.Info("successfully dispatched job",
+			"job_id", *j.payload.ID, "dispatch_job_id", dispatchResp.DispatchedJobID)
+
+	}
+}
+
+func (j *TestJob) RunService(worker int, numOfUpdates int, updatesDelay time.Duration) error {
+	parsed, err := j.render(worker)
+	if err != nil {
+		return err
+	}
+	_, _, err = j.client.Jobs().Register(parsed, nil)
+	if err != nil {
+		metrics.IncrCounter([]string{"registration_error"}, 1)
+		j.logger.Error("failed to register job", "error", err)
+	}
+
+	metrics.IncrCounter([]string{"registrations"}, 1)
+	j.logger.Info("successfully registered job", "job_id", *parsed.ID)
+
+	if numOfUpdates > 0 {
+		for i := 0; i < numOfUpdates; i++ {
+			time.Sleep(updatesDelay)
+
+			// re-parse the jobspec so that the echo string gets updated
+			parsed, err := j.render(worker)
 			if err != nil {
-				metrics.IncrCounter([]string{"dispatches_error"}, 1)
-				j.logger.Error("failed to dispatch job", "error", err)
-				continue
+				return err
 			}
-
-			metrics.IncrCounter([]string{"dispatches"}, 1)
-			j.logger.Info("successfully dispatched job",
-				"job_id", *j.payload.ID, "dispatch_job_id", dispatchResp.DispatchedJobID)
-
-		case JobTypeService:
 			_, _, err = j.client.Jobs().Register(parsed, nil)
 			if err != nil {
-				metrics.IncrCounter([]string{"registration_error"}, 1)
-				j.logger.Error("failed to register job", "error", err)
-				continue
+				metrics.IncrCounter([]string{"job_update_error"}, 1)
+				j.logger.Error("failed to update job", "error", err)
 			}
-
-			metrics.IncrCounter([]string{"registrations"}, 1)
-			j.logger.Info("successfully registered job", "job_id", *parsed.ID)
-
-		default:
-			return fmt.Errorf("incorrect job type %s", jobType)
+			j.logger.Info("successfully updated job", "job_id", *parsed.ID, "update_num", i)
 		}
 	}
+	return nil
 }
