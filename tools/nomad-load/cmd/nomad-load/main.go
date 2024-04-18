@@ -115,21 +115,13 @@ func main() {
 		})
 		if *updates && *jobType == internal.JobTypeService {
 			ticker := time.NewTicker(*updatesFreq)
-			done := make(chan bool)
 
 			g.Go(func() error {
-				for {
-					select {
-					case <-done:
-						return nil
-					case <-ticker.C:
-						return job.Run(ctx, lim, rng, i, true, *jobType)
-					}
+				for range ticker.C {
+					return job.Run(ctx, lim, rng, i, true, *jobType)
 				}
+				return nil
 			})
-
-			ticker.Stop()
-			done <- true
 		}
 	}
 
