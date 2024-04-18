@@ -80,6 +80,20 @@ func (j *TestJob) RegisterBatch() error {
 }
 
 func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, worker int, update bool, jobType string) error {
+
+	// The job specification template can be rendered once and is only needed
+	// if we are using service job registrations as load.
+	var (
+		renderedJobspec *api.Job
+		err             error
+	)
+
+	if jobType == JobTypeService {
+		if renderedJobspec, err = j.render(worker); err != nil {
+			return fmt.Errorf("failed to render template: %w", err)
+		}
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -97,11 +111,6 @@ func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, wo
 			time.Sleep(time.Duration(rng.IntN(1000)) * time.Millisecond)
 		}
 
-		parsed, err := j.render(worker)
-		if err != nil {
-			return err
-		}
-
 		switch jobType {
 		case JobTypeBatch:
 			dispatchResp, _, err := j.client.Jobs().Dispatch(*j.payload.ID, nil, nil, "", nil)
@@ -116,7 +125,7 @@ func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, wo
 				"job_id", *j.payload.ID, "dispatch_job_id", dispatchResp.DispatchedJobID)
 
 		case JobTypeService:
-			_, _, err = j.client.Jobs().Register(parsed, nil)
+			_, _, err = j.client.Jobs().Register(renderedJobspec, nil)
 			if err != nil {
 				metrics.IncrCounter([]string{"registration_error"}, 1)
 				j.logger.Error("failed to register job", "error", err)
@@ -124,7 +133,7 @@ func (j *TestJob) Run(ctx context.Context, lim *rate.Limiter, rng *rand.Rand, wo
 			}
 
 			metrics.IncrCounter([]string{"registrations"}, 1)
-			j.logger.Info("successfully registered job", "job_id", *parsed.ID)
+			j.logger.Info("successfully registered job", "job_id", *renderedJobspec.ID)
 
 		default:
 			return fmt.Errorf("incorrect job type %s", jobType)
