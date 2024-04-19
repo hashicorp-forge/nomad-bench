@@ -82,11 +82,8 @@ func (j *TestJob) RegisterBatch() error {
 func (j *TestJob) DispatchBatch(wg *sync.WaitGroup, numOfDispatches int, lim *rate.Limiter, rng *rand.Rand) {
 	defer wg.Done()
 
-	for i := 0; i < numOfDispatches; i++ {
+	dispatch := func() {
 		r := lim.Reserve()
-		if !r.OK() {
-			continue
-		}
 		time.Sleep(r.Delay())
 
 		if rng != nil {
@@ -97,13 +94,22 @@ func (j *TestJob) DispatchBatch(wg *sync.WaitGroup, numOfDispatches int, lim *ra
 		if err != nil {
 			metrics.IncrCounter([]string{"dispatches_error"}, 1)
 			j.logger.Error("failed to dispatch job", "error", err)
-			continue
 		}
 
 		metrics.IncrCounter([]string{"dispatches"}, 1)
 		j.logger.Info("successfully dispatched job",
 			"job_id", *j.payload.ID, "dispatch_job_id", dispatchResp.DispatchedJobID)
+	}
 
+	if numOfDispatches > 0 {
+		for i := 0; i < numOfDispatches; i++ {
+			dispatch()
+		}
+	} else {
+		// 0 is "infinity"
+		for {
+			dispatch()
+		}
 	}
 	j.logger.Info("sccessfully dispatched jobs", "num_of_dispatches", numOfDispatches)
 }
@@ -125,22 +131,33 @@ func (j *TestJob) RunService(wg *sync.WaitGroup, worker int, numOfUpdates int, u
 	metrics.IncrCounter([]string{"registrations"}, 1)
 	j.logger.Info("successfully registered job", "job_id", *parsed.ID)
 
+	update := func(i int) {
+		time.Sleep(updatesDelay)
+
+		// re-parse the jobspec so that the echo string gets updated
+		parsed, err := j.render(worker)
+		if err != nil {
+			j.logger.Error("failed to render job", "error", err)
+			return
+		}
+		_, _, err = j.client.Jobs().Register(parsed, nil)
+		if err != nil {
+			metrics.IncrCounter([]string{"job_update_error"}, 1)
+			j.logger.Error("failed to update job", "error", err)
+		}
+		j.logger.Info("successfully updated job", "job_id", *parsed.ID, "update_num", i)
+	}
+
 	if numOfUpdates > 0 {
 		for i := 0; i < numOfUpdates; i++ {
-			time.Sleep(updatesDelay)
-
-			// re-parse the jobspec so that the echo string gets updated
-			parsed, err := j.render(worker)
-			if err != nil {
-				j.logger.Error("failed to render job", "error", err)
-				return
-			}
-			_, _, err = j.client.Jobs().Register(parsed, nil)
-			if err != nil {
-				metrics.IncrCounter([]string{"job_update_error"}, 1)
-				j.logger.Error("failed to update job", "error", err)
-			}
-			j.logger.Info("successfully updated job", "job_id", *parsed.ID, "update_num", i)
+			update(i)
+		}
+	} else {
+		// 0 is "infinity"
+		i := 0
+		for {
+			update(i)
+			i++
 		}
 	}
 }
