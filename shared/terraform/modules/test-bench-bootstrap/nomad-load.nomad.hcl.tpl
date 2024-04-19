@@ -59,7 +59,7 @@ EOF
         data        = <<EOF
 {{with nomadVar "nomad/jobs/${terraform_job_name}"}}
 [[inputs.prometheus]]
-  urls = ["http://localhost:{{env "NOMAD_PORT_nomad_load"}}/v1/metrics"]
+  urls = ["http://localhost:{{env "NOMAD_PORT_nomad_load"}}/v1/metrics?format=prometheus"]
 
 [[outputs.influxdb_v2]]
   urls                 = ["${terraform_influxdb_url}"]
