@@ -9,7 +9,6 @@ require (
 	github.com/hashicorp/nomad v1.7.6
 	github.com/hashicorp/nomad/api v0.0.0-20240327201139-6ad648bec8e8
 	github.com/prometheus/client_golang v1.19.0
-	golang.org/x/sync v0.6.0
 	golang.org/x/time v0.5.0
 )
 
