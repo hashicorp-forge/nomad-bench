@@ -82,7 +82,7 @@ func (j *TestJob) RegisterBatch() error {
 func (j *TestJob) DispatchBatch(wg *sync.WaitGroup, numOfDispatches int, lim *rate.Limiter, rng *rand.Rand) {
 	defer wg.Done()
 
-	dispatch := func() {
+	dispatch := func(i int) {
 		r := lim.Reserve()
 		time.Sleep(r.Delay())
 
@@ -98,17 +98,19 @@ func (j *TestJob) DispatchBatch(wg *sync.WaitGroup, numOfDispatches int, lim *ra
 
 		metrics.IncrCounter([]string{"dispatches"}, 1)
 		j.logger.Info("successfully dispatched job",
-			"job_id", *j.payload.ID, "dispatch_job_id", dispatchResp.DispatchedJobID)
+			"job_id", *j.payload.ID, "dispatch_job_id", dispatchResp.DispatchedJobID, "dispatch_number", i)
 	}
 
 	if numOfDispatches > 0 {
 		for i := 0; i < numOfDispatches; i++ {
-			dispatch()
+			dispatch(i)
 		}
 	} else {
 		// 0 is "infinity"
+		i := 0
 		for {
-			dispatch()
+			dispatch(i)
+			i++
 		}
 	}
 	j.logger.Info("sccessfully dispatched jobs", "num_of_dispatches", numOfDispatches)
