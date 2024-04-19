@@ -1,17 +1,16 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"math/rand/v2"
 	"os"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/nomad/api"
-	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
 	"github.com/hashicorp/nomad-bench/tools/nomad-load/internal"
@@ -25,19 +24,20 @@ var (
 	httpAddr  = flag.String("http-addr", "0.0.0.0", "The address to bind the HTTP server to")
 	httpPort  = flag.String("http-port", "8080", "The port to bind the HTTP server to")
 
-	jobType      = flag.String("type", internal.JobTypeBatch, "The type of job to create (batch or service)")
-	jobDriver    = flag.String("driver", internal.JobDriverMock, "The driver to use for the job (mock or docker)")
-	updatesDelay = flag.Duration("updates-delay", 500*time.Millisecond, "The delay between updates of the service job")
-	numOfUpdates = flag.Int("num-of-updates", 0, "The number of updates to perform on the service job")
-	count        = flag.Int("count", 1, "The count number per job (number of allocations is count * groups)")
-	groups       = flag.Int("groups", 1, "The number of groups to create per job")
-	spread       = flag.Bool("spread", false, "Should the jobs be spread across the datacenters?")
-	reqRate      = flag.Float64("rate", 10, "The rate of constant job dispatches per second")
-	burstRate    = flag.Int("burst", 1, "The burst rate of constant job dispatches")
-	randomize    = flag.Bool("random", false, "Should the rate at which the jobs are dispatched be randomized?")
-	seed1        = flag.Uint64("seed1", rand.Uint64(), "First uint64 of the PCG seed used by the random number generator")
-	seed2        = flag.Uint64("seed2", rand.Uint64(), "Second uint64 of the PCG seed used by the random number generator")
-	workers      = flag.Int("workers", 10*runtime.NumCPU(), "The number of workers to use")
+	jobType         = flag.String("type", internal.JobTypeBatch, "The type of job to create (batch or service)")
+	jobDriver       = flag.String("driver", internal.JobDriverMock, "The driver to use for the job (mock or docker)")
+	updatesDelay    = flag.Duration("updates-delay", 500*time.Millisecond, "The delay between updates of the service job")
+	numOfUpdates    = flag.Int("num-of-updates", 0, "The number of updates to perform on the service job")
+	numOfDispatches = flag.Int("num-of-dispatches", 1000, "The number of dispatches to perform on the batch job")
+	count           = flag.Int("count", 1, "The count number per job (number of allocations is count * groups)")
+	groups          = flag.Int("groups", 1, "The number of groups to create per job")
+	spread          = flag.Bool("spread", false, "Should the jobs be spread across the datacenters?")
+	reqRate         = flag.Float64("rate", 10, "The rate of constant job dispatches per second")
+	burstRate       = flag.Int("burst", 1, "The burst rate of constant job dispatches")
+	randomize       = flag.Bool("random", false, "Should the rate at which the jobs are dispatched be randomized?")
+	seed1           = flag.Uint64("seed1", rand.Uint64(), "First uint64 of the PCG seed used by the random number generator")
+	seed2           = flag.Uint64("seed2", rand.Uint64(), "Second uint64 of the PCG seed used by the random number generator")
+	workers         = flag.Int("workers", 10*runtime.NumCPU(), "The number of workers to use")
 
 	logLevel = flag.String("log-level", "DEBUG", "The log level to use")
 	ver      = flag.Bool("version", false, "Prints out the version")
@@ -69,10 +69,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Create errgroup to watch goroutines and start the HTTP server.
-	g, ctx := errgroup.WithContext(context.Background())
-
-	g.Go(httpServer.Server().ListenAndServe)
+	go httpServer.Server().ListenAndServe()
 
 	// Initialize Nomad client and register test job.
 	config := api.DefaultConfig()
@@ -109,23 +106,19 @@ func main() {
 
 	// Start goroutines to register jobs.
 	logger.Info("creating jobs", "rate", *reqRate, "burst", *burstRate)
+
+	var wg sync.WaitGroup
+	wg.Add(*workers)
+
 	for i := 0; i < *workers; i++ {
 		switch *jobType {
 		case internal.JobTypeBatch:
-			g.Go(func() error {
-				return job.DispatchBatch(ctx, lim, rng)
-			})
+			go job.DispatchBatch(&wg, *numOfDispatches, lim, rng)
 		case internal.JobTypeService:
-			g.Go(func() error {
-				return job.RunService(i, *numOfUpdates, *updatesDelay)
-			})
+			go job.RunService(&wg, i, *numOfUpdates, *updatesDelay)
 		}
 	}
 
 	// Wait for results.
-	err = g.Wait()
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	}
+	wg.Wait()
 }
