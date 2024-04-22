@@ -27,7 +27,8 @@ job "test_job_{{$w}}_{{$c}}" {
       driver = "mock_driver"
 
       config {
-        run_for = "10s"
+        run_for       = "10s"
+        stdout_string = "{{ $e }}"
       }
     }
     {{ else if eq $d "docker" }}
