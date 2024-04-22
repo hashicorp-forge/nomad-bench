@@ -26,7 +26,7 @@ var (
 	httpPort  = flag.String("http-port", "8080", "The port to bind the HTTP server to")
 
 	jobType      = flag.String("type", internal.JobTypeBatch, "The type of job to create (batch or service)")
-	jobDriver    = flag.String("driver", internal.JobDriverDocker, "The driver to use for the job (mock or docker)")
+	jobDriver    = flag.String("driver", internal.JobDriverMock, "The driver to use for the job (mock or docker)")
 	updatesDelay = flag.Duration("updates-delay", 500*time.Millisecond, "The delay between updates of the service job")
 	numOfUpdates = flag.Int("num-of-updates", 0, "The number of updates to perform on the service job")
 	count        = flag.Int("count", 1, "The count number per job (number of allocations is count * groups)")
