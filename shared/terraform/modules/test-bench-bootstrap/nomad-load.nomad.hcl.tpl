@@ -14,14 +14,14 @@ job "${terraform_job_name}" {
 
       config {
         image   = "laoqui/nomad-load:latest"
-        command = "/bin/bash"
+        command = "/bin/sh"
         args    = ["#{NOMAD_TASK_DIR}/script.sh"]
         ports   = ["nomad-load"]
       }
 
       template {
         data        = <<EOF
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 timeout 60 nomad-load -driver=mock -http-port={{env "NOMAD_PORT_nomad_load"}} -rate=1 -workers=100
 sleep 10
