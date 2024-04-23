@@ -1,3 +1,9 @@
+variable "gc_interval_seconds" {
+  type        = number
+  default     = 60
+  description = "The number of seconds per call of the Nomad GC API endpoint."
+}
+
 job "${terraform_job_name}" {
   type      = "service"
   namespace = "${terraform_job_namespace}"
@@ -18,7 +24,7 @@ job "${terraform_job_name}" {
 #!/usr/bin/env sh
 
 while true; do
-  sleep 60
+  sleep var.gc_interval_seconds
   curl --request PUT ${terraform_nomad_addr}/v1/system/gc
 done
 EOF
