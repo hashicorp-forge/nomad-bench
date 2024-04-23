@@ -141,14 +141,42 @@ Run the Ansible playbook to configure the VMs.
 cd ./ansible && ansible-playbook ./playbook.yaml && cd ..
 ```
 
-Customize the generated `nomad-nodesim` jobs and run them. Make sure you still
-have the core cluster `NOMAD_*` environment variables defined.
+#### Test Cluster Nomad Jobs
+Terraform produces a number of Nomad job specification files which are designed to be run on the
+core cluster, but interact with the test cluster. These are located within the `jobs` directory of
+your test cluster infrastructure directory. When performing the job registration, you should ensure
+the `NOMAD_*` environment variables are set and point to the core cluster.
 
+The `nomad-nodesim-<CLUSTER NAME>.nomad.hcl` job utilises [`nomad-nodesim`][] to register Nomad
+clients with the test cluster servers. By default, it will register 100 clients that are spread
+across two datacenters (`dc1`, `dc2`).
 ```console
-nomad run ./jobs/nomad-nodesim-<CLUSTER NAME>.nomad.hcl
+nomad job run \
+  -var 'group_num=1' \
+  ./jobs/nomad-nodesim-<CLUSTER NAME>.nomad.hcl
+```
+
+The `nomad-load-<CLUSTER NAME>.nomad.hcl` job utilises the [nomad-load](./tools/nomad-load) in order
+to execute load against the Nomad cluster. The job specification should be modified in order to run
+the load testing scenario you want. It also includes a [Telegraf][telegraf] task that ships
+telemetry data from the load testing tool, to the central [InfluxDB][influxdb] server.
+```console
+nomad job run \
+  ./jobs/nomad-load-<CLUSTER NAME>.nomad.hcl
+```
+
+The `nomad-gc-<CLUSTER NAME>.nomad.hcl` job can optionally be run to periodically trigger and run
+the Nomad garbage collection process. This helps manage Nomad server memory utilisation in
+situations where large number of jobs are being dispatched.
+```console
+nomad job run \
+  -var 'gc_interval_seconds=60' \
+  ./jobs/nomad-gc-<CLUSTER NAME>.nomad.hcl
 ```
 
 [`nomad-nodesim`]: https://github.com/hashicorp-forge/nomad-nodesim
 [ansible_install]: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#selecting-an-ansible-package-and-version-to-install
 [terraform_install]: https://developer.hashicorp.com/terraform/install
 [python_install]: https://www.python.org/downloads/
+[telegraf]: https://www.influxdata.com/time-series-platform/telegraf/
+[influxdb]: https://www.influxdata.com/
