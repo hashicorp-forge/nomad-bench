@@ -53,7 +53,7 @@ EOH
 
       resources {
         cpu    = 150
-        memory = 512
+        memory = ${nodesim_memory}
       }
     }
 
@@ -96,7 +96,7 @@ EOH
 
       resources {
         cpu    = 150
-        memory = 512
+        memory = ${nodesim_memory}
       }
     }
   }

@@ -5,6 +5,7 @@ locals {
       terraform_job_name      = "nomad-nodesim-${name}"
       terraform_job_namespace = nomad_namespace.nomad_bench.name
       terraform_job_servers   = cluster.server_private_ips
+      nodesim_memory          = var.nodesim_memory
     },
   ) }
 
