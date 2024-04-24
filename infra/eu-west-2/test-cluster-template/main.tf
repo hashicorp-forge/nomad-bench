@@ -48,6 +48,7 @@ module "bootstrap" {
   clusters          = module.clusters
   ssh_key_path      = local_sensitive_file.ssh_key.filename
   bastion_ip        = data.terraform_remote_state.core.outputs.bastion_ip
+  nodesim_memory    = 512
 }
 
 resource "local_sensitive_file" "ssh_key" {

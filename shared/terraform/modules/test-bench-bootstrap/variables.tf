@@ -40,3 +40,9 @@ variable "ssh_key_path" {
 variable "bastion_ip" {
   type = string
 }
+
+variable "nodesim_memory" {
+  description = "The memory to allocate to the nodesim job."
+  type        = number
+  default     = 512
+}
