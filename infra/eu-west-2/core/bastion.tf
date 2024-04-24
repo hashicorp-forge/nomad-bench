@@ -3,7 +3,7 @@ module "bastion" {
 
   project_name         = var.project_name
   ami_id               = data.aws_ami.ubuntu.id
-  instance_type        = "m5.large"
+  instance_type        = "t3.large"
   security_group_ids   = [module.network.nomad_security_group_id]
   ssh_private_key_name = module.ssh.key_name
   subnet_id            = element(module.network.public_subnet_ids, 0)
