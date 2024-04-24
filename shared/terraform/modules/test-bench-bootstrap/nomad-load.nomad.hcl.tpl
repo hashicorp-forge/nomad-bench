@@ -43,7 +43,7 @@ EOF
       driver = "docker"
 
       lifecycle {
-        hook    = "prestart"
+        hook    = "poststart"
         sidecar = true
       }
 
