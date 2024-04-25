@@ -110,16 +110,15 @@ terraform apply
 ```
 
 ### Create Test Clusters
-
-Copy the directory `./infra/eu-west-2/test-cluster-template` and give it your
-own name.
-
+The infra directory contains a [template](./infra/eu-west-2/test-cluster-template) that can be
+used to create the infrastructure for test cluster. This can simply be copied to generate the base
+configuration for a test cluster.
 ```console
 cp -r ./infra/eu-west-2/test-cluster-template ./infra/eu-west-2/test-cluster-<YOUR NAME>
 ```
 
-Navigate to the new directory and create a `terraform.tfvars` file.
-
+The newly created Terraform code requires a single variable to be set via a `tfvars` file. This can
+be created using the commands below from inside the new directory.
 ```console
 cd ./infra/eu-west-2/test-cluster-<YOUR NAME>
 cat <<EOF > terraform.tfvars
@@ -127,18 +126,49 @@ project_name = "test-cluster-<YOUR NAME>"
 EOF
 ```
 
-Customize the test cluster definitions in `main.tf` and provision the
-infrastructure.
-
-```console
-terraform init
-terraform apply
+The test cluster definitions are stored within the `main.tf` file and should be customized before
+Terraform is used for provisioning. The `locals` definition, is the most likely area where changes
+will be made and serves as a place to add Ansible playbook variables. The below is an example of a
+single test cluster, which is setting custom Ansible variables to modify the InfluxDB collection
+interval and the Nomad agent in-memory telemetry interval and retention periods.
+```terraform
+locals {
+  test_clusters = {
+    (var.project_name) = {
+      server_instance_type = "m5.large"
+      server_count         = 3
+      ansible_server_group_vars = {
+        influxdb_telegraf_input_nomad_interval        = "1s"
+        nomad_telemetry_in_memory_collection_interval = "1s"
+        nomad_telemetry_in_memory_retention_period    = "1m"
+      }
+    }
+  }
+}
 ```
 
-Run the Ansible playbook to configure the VMs.
-
+Once customizations have been made, Terraform can be used to build the infrastructure resources.
 ```console
-cd ./ansible && ansible-playbook ./playbook.yaml && cd ..
+terraform init
+terraform apply --auto-approve
+```
+
+With the base infrastructure built, we can configure the EC2 instances using Ansible. Customizations
+to Ansible variables can also be made at this point, using the files within `./ansible/group_vars`
+and `./ansible/host_vars`.
+```console
+cd ./ansible && \
+  ansible-playbook ./playbook.yaml && \
+  cd ..
+```
+
+The Ansible playbooks also support compiling, distributing, and running Nomad based on a local copy
+of the codebase. This must be run independently of the previous Ansible command, due to the tags
+used. It will copy your code to the bastion host and perform a remote compilation, before
+downloading the binary, distributing it to EC2 instances, and restarting the Nomad process.
+```console
+cd ./ansible && \
+  ansible-playbook --tags custom_build --extra-vars build_nomad_local_code_path=<PATH_TO_CODE> playbook.yaml
 ```
 
 #### Test Cluster Nomad Jobs
