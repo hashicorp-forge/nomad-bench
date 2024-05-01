@@ -24,7 +24,7 @@ job "${terraform_job_name}" {
 #!/usr/bin/env sh
 
 while true; do
-  sleep var.gc_interval_seconds
+  sleep {{ env "INTERVAL" }}
   curl --request PUT ${terraform_nomad_addr}/v1/system/gc
 done
 EOF
@@ -33,6 +33,7 @@ EOF
 
       env {
         NOMAD_ADDR = "${terraform_nomad_addr}"
+        INTERVAL   = var.gc_interval_seconds
       }
     }
   }
