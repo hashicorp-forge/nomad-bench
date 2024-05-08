@@ -9,10 +9,6 @@ resource "aws_ebs_volume" "influxdb" {
   tags = {
     Name = "bench-core-influxdb"
   }
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 

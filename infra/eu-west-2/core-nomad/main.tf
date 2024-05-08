@@ -1,10 +1,7 @@
 data "terraform_remote_state" "core" {
-  backend = "remote"
+  backend = "local"
 
   config = {
-    organization = "nomad-eng"
-    workspaces = {
-      name = "nomad-bench-core"
-    }
+    path = "../core/terraform.tfstate"
   }
 }

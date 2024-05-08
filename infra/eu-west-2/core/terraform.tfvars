@@ -1,5 +1,4 @@
 region       = "eu-west-2"
-project_name = "bench-core"
+project_name = "bench-core-jrasell-test"
 
-jrasell_ip      = "86.178.126.125"
-pkazmierczak_ip = "95.98.54.163"
+allowed_ip_addresses = ["86.178.126.125"]

@@ -10,6 +10,16 @@ Customize and run the nodesim job for each test cluster.
   nomad run ./jobs/nomad-nodesim-${cluster_name}.nomad.hcl
 %{endfor~}
 
+Customize and run the GC job for each test cluster.
+%{for cluster_name, cluster in module.clusters~}
+  nomad run ./jobs/nomad-gc-${cluster_name}.nomad.hcl
+%{endfor~}
+
+Customize and run the load job for each test cluster.
+%{for cluster_name, cluster in module.clusters~}
+  nomad run ./jobs/nomad-load-${cluster_name}.nomad.hcl
+%{endfor~}
+
 Use the following commands to SSH into servers.
 %{for cluster in keys(module.clusters)~}
   ${cluster}:
