@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 locals {
   nomad_nodesim_jobs = { for name, cluster in var.clusters : name => templatefile(
     "${path.module}/nomad-nodesim.nomad.hcl.tpl",

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 locals {
   nomad_aws_server_join = "provider=aws tag_key=Nomad_role tag_value=${aws_instance.servers[0].tags.Nomad_role}"
 }

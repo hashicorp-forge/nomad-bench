@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 - name: "create_host_volume"
   become: true
   ansible.builtin.file:

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 variable "project_name" {
   description = "The name that will be associated with all AWS resources."
   type        = string

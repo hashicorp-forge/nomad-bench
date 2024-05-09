@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 - name: "bootstrap_acl"
   run_once: true
   ansible.builtin.command: "nomad acl bootstrap -json"

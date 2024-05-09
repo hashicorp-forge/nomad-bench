@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 influxdb_telegraf_install_dir: "/usr/local/bin"
 influxdb_telegraf_version: "1.29.2"
 influxdb_telegraf_config_dir: "/etc/telegraf.d/"

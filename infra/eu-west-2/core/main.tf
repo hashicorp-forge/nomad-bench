@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 locals {
   allowed_cidrs = [for ip in var.allowed_ip_addresses : "${ip}/32"]
 

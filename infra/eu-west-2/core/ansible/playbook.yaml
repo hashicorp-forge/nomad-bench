@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 - ansible.builtin.import_playbook: "playbook_bastion.yaml"
 - ansible.builtin.import_playbook: "playbook_server.yaml"
 - ansible.builtin.import_playbook: "playbook_client.yaml"
