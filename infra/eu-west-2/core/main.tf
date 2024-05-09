@@ -1,9 +1,5 @@
 locals {
-  allowed_ips = [
-    var.jrasell_ip,
-    var.pkazmierczak_ip,
-  ]
-  allowed_cidrs = [for ip in local.allowed_ips : "${ip}/32"]
+  allowed_cidrs = [for ip in var.allowed_ip_addresses : "${ip}/32"]
 
   ansible_ssh_private_key_file = "../keys${module.ssh.private_key_filepath}"
   ansible_default_vars = {
@@ -47,7 +43,6 @@ module "tls" {
   lb_ips     = [module.core_cluster_lb.lb_public_ip, module.core_cluster_lb.lb_private_ip]
   client_ips = module.core_cluster.client_private_ips
   server_ips = module.core_cluster.server_private_ips
-  dns_names  = [aws_route53_record.nomad_bench.name]
 }
 
 # There is a small chicken and egg problem that requires us to pre-generate an
@@ -57,12 +52,6 @@ module "tls" {
 resource "random_password" "influxdb_token" {
   length  = 88
   special = true
-
-  # This value is used for initial setup only, and should not be modified.
-  # Changes here DO NOT affect the running system.
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 module "core_cluster" {

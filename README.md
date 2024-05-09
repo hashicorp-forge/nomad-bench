@@ -26,16 +26,16 @@ and [nomad-metrics readme](./tools/nomad-metrics/README.md) files for more infor
 and how to run it.
 
 ## Getting Started
-
-To run this project you needs the following tools installed in your machined:
-
+To run this project you needs the following tools installed in your machine:
 * [Terraform][terraform_install]
 * [Python][python_install]
 * [Ansible][ansible_install]
 * `make`
 
-### (Optional) Create a Python Virtual Environment
+The project also needs an AWS account where the infrastructure will be built and run. The resources
+used have a non-trivial monetary cost associated.
 
+### (Optional) Create a Python Virtual Environment
 Virtual environments allow you to isolate Python package installation for
 specific projects.
 
@@ -49,7 +49,6 @@ cd ../../
 ```
 
 ### Install Dependencies
-
 Run the `make deps` target from the root to install the dependencies.
 
 ```console
@@ -57,57 +56,60 @@ make deps
 ```
 
 ### Provision Core Infrastructure
+Navigate to the `./infra/eu-west-2/core` directory and edit the empty variables within the
+[`terraform.tfvars`](./infra/eu-west-2/core/terraform.tfvars) file to match you requirements and
+environment setup.
 
-Login to Terraform Cloud.
-
+Once customizations have been made, Terraform can be used to build the infrastructure resources.
 ```console
-terraform login
-```
-
-Run Terraform from the `./infra/eu-west-2/core` directory.
-
-```console
-cd ./infra/eu-west-2/core
 terraform init
-terraform apply
+terraform plan
+terraform apply --auto-approve
 ```
 
-Extract mTLS and SSH materials from the Terraform state.
-
+Once the infrastructure has been provisioned, you can extract the mTLS and SSH materials from the
+Terraform state. Following the command will detail which files are written to your local machine.
 ```console
 make
 ```
 
-Once the infrastructure is provisioned, run Ansible to configure it.
-
+With the infrastructure is provisioned, run Ansible to configure the base components. This includes
+Nomad.
 ```console
 cd ./ansible && ansible-playbook ./playbook.yaml && cd ..
 ```
 
-Since the cluster was just created, the Nomad ACL system must be bootstrapped.
-
+Since the cluster was just created, the Nomad ACL system must be bootstrapped. The result Nomad ACL
+token is written to `./ansible/nomad-token`.
 ```console
-cd ./ansible && ansible-playbook ./playbook.yaml && cd ..
+cd ./ansible && ansible-playbook --tags bootstrap_acl ./playbook_server.yaml && cd ..
 ```
-
-The Nomad bootstrap token is written to `./ansible/nomad-token`.
 
 ### Configure Nomad
-
-From the `./infra/eu-west-2/core` directory, print the Terraform output and
-export the `NOMAD_*` environment variables.
-
+The base infrastructure has been provisioned, now we need to configure some Nomad resources. From
+the `./infra/eu-west-2/core` directory, print the Terraform output and export the `NOMAD_*`
+environment variables. 
 ```console
 terraform output message
 ```
 
-Navigate to the `core-nomad` directory and run Terraform.
+We will also need to export the `NOMAD_TOKEN` environment variable using the bootstrap token which
+can be found within `./ansible/nomad-token`.
+```console
+export NOMAD_TOKEN=e2d9d6e1-8158-0a74-7b09-ecdc23317c51
+```
 
+Navigate to the `core-nomad` directory and run Terraform.
 ```
-cd ../core-nomad
 terraform init
-terraform apply
+terraform plan
+terraform apply --auto-approve
 ```
+
+Once completed the base nomad-bench infrastructure will be provisioned and running. This includes
+InfluxDB which is exposed via the address which can be seen in the Terraform output. The password
+for the `admin` user can be found via the Nomad UI variable section under the `nomad/jobs/influxdb`
+path.
 
 ### Create Test Clusters
 The infra directory contains a [template](./infra/eu-west-2/test-cluster-template) that can be
@@ -150,6 +152,7 @@ locals {
 Once customizations have been made, Terraform can be used to build the infrastructure resources.
 ```console
 terraform init
+terraform plan
 terraform apply --auto-approve
 ```
 
@@ -203,6 +206,10 @@ nomad job run \
   -var 'gc_interval_seconds=60' \
   ./jobs/nomad-gc-<CLUSTER NAME>.nomad.hcl
 ```
+
+## Destroying
+Once you have finished with the infrastructure, you should run `terraform destroy` in each
+directory where `terraform apply` was previously run.
 
 [`nomad-nodesim`]: https://github.com/hashicorp-forge/nomad-nodesim
 [ansible_install]: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#selecting-an-ansible-package-and-version-to-install

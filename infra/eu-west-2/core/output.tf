@@ -94,10 +94,6 @@ output "influxdb_token" {
   sensitive = true
 }
 
-output "dns_ns" {
-  value = aws_route53_zone.nomad_bench.name_servers
-}
-
 output "private_subnet_ids" {
   value = module.network.private_subnet_ids
 }

@@ -1,5 +1,6 @@
 SHELL = bash
 REGION := global
+SSH_KEY_NAME := $(shell terraform output -raw ssh_key_name).pem
 
 default: all
 
@@ -9,8 +10,8 @@ keys:
 tls:
 	mkdir -p ./tls
 
-keys/bench-core.pem: keys *.tf
-	terraform output -raw ssh_key > ./$@
+keys/$(SSH_KEY_NAME): keys *.tf
+	terraform output -raw ssh_key > ./keys/$(SSH_KEY_NAME)
 	chmod 0600 ./$@
 
 tls/nomad-agent-ca.pem: tls *.tf
@@ -34,7 +35,7 @@ mtls: $(foreach t,$(TLS_TARGETS),tls/$(REGION)-$(t)-nomad.pem)
 mtls: $(foreach t,$(TLS_TARGETS),tls/$(REGION)-$(t)-nomad-key.pem)
 
 .PHONY: ssh
-ssh: keys/bench-core.pem
+ssh: keys/$(SSH_KEY_NAME)
 
 .PHONY: clean
 clean:
