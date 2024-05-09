@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 variable "project_name" {
   description = "The project name to use for creation of all bootstrap resources."
   type        = string

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 output "ca_key" {
   value     = tls_private_key.ca.private_key_pem
   sensitive = true

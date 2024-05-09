@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 variable "project_name" {
   description = "Used to name various infrastructure components"
   type        = string

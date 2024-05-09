@@ -1,2 +1,5 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 plugin: "cloud.terraform.terraform_provider"
 project_path: "./.."

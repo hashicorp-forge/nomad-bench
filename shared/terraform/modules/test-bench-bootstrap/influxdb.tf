@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 data "influxdb-v2_organization" "influx_org" {
   name = var.influxdb_org_name
 }

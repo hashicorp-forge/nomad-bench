@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 - name: "create_config_dir"
   become: true
   ansible.builtin.file:

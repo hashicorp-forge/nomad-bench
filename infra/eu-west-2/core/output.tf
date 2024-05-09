@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 output "message" {
   value = <<-EOM
 Your ${var.project_name} cluster has been provisioned!

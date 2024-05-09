@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 - name: "check_cni_plugins"
   ansible.builtin.stat:
     path: "{{ cni_plugins_path }}"

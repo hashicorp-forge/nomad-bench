@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 locals {
   public_subnets = [
     cidrsubnet(aws_vpc.vpc.cidr_block, 8, 1),
