@@ -119,7 +119,7 @@ func (j *TestJob) DispatchBatch(wg *sync.WaitGroup, numOfDispatches int, lim *ra
 	j.logger.Info("sccessfully dispatched jobs", "num_of_dispatches", numOfDispatches)
 }
 
-func (j *TestJob) RunService(wg *sync.WaitGroup, worker int, numOfUpdates int, updatesDelay time.Duration) {
+func (j *TestJob) RunService(wg *sync.WaitGroup, worker int, numOfUpdates int, updatesDelay, updatesDelayTarget time.Duration) {
 	defer wg.Done()
 
 	parsed, err := j.render(worker)
@@ -136,8 +136,8 @@ func (j *TestJob) RunService(wg *sync.WaitGroup, worker int, numOfUpdates int, u
 	metrics.IncrCounter([]string{"registrations"}, 1)
 	j.logger.Info("successfully registered job", "job_id", *parsed.ID)
 
-	update := func(i int) {
-		time.Sleep(updatesDelay)
+	update := func(i int, delay time.Duration) {
+		time.Sleep(delay)
 
 		// re-parse the jobspec so that the echo string gets updated
 		parsed, err := j.render(worker)
@@ -154,14 +154,23 @@ func (j *TestJob) RunService(wg *sync.WaitGroup, worker int, numOfUpdates int, u
 	}
 
 	if numOfUpdates > 0 {
+		// check if we're supposed to gradually increase the frequency of updates
+		var decrementStep time.Duration
+		if updatesDelayTarget != 0 {
+			decrementStep = (updatesDelay - updatesDelayTarget) / time.Duration(numOfUpdates-1)
+		}
+
 		for i := 0; i < numOfUpdates; i++ {
-			update(i)
+			update(i, updatesDelay)
+			if decrementStep != 0 {
+				updatesDelay -= decrementStep
+			}
 		}
 	} else {
 		// 0 is "infinity"
 		i := 0
 		for {
-			update(i)
+			update(i, updatesDelay)
 			i++
 		}
 	}
