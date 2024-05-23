@@ -2,6 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 
 region       = "eu-west-2"
-project_name = "bench-core-jrasell-test"
+project_name = "bench-core"
 
-allowed_ip_addresses = ["86.178.126.125"]
+allowed_ip_addresses = ["192.168.0.1"]
