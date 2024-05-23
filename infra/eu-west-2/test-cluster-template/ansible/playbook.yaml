@@ -3,7 +3,7 @@
 
 - hosts: bastion
   roles:
-    - role: build
+    - role: hashicorp.nomad_bench.build
       vars:
         build_user: "{{ lookup('env', 'USER') }}"
       tags:
@@ -12,8 +12,8 @@
 
 - hosts: server
   roles:
-    - role: common
-    - role: nomad
+    - role: hashicorp.nomad_bench.common
+    - role: hashicorp.nomad_bench.nomad
       vars:
         # Most variables are defined in the inventory with Terraform. You can
         # customize values for specific hosts or groups using the files in
@@ -23,7 +23,7 @@
         # each host and group.
         nomad_server_join_retry_join: ["{{ terraform_nomad_server_join }}"]
         nomad_custom_binary_source: "{{ build_nomad_local_code_path }}/pkg/linux_amd64/nomad"
-    - role: influxdb_telegraf
+    - role: hashicorp.nomad_bench.influxdb_telegraf
       vars:
         influxdb_telegraf_input_nomad_url: "http://127.0.0.1:4646"
         influxdb_telegraf_output_urls: "{{ terraform_influxdb_telegraf_output_urls_json | ansible.builtin.from_json }}"

@@ -1,0 +1,11 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+namespace: "hashicorp"
+name: "nomad_bench"
+version: "0.0.1"
+readme: "../../README.md"
+authors:
+  - "HashiCorp"
+description: "Nomad Bench Ansible Collection"
+repository: "https://github.com/hashicorp-forge/nomad-bench"

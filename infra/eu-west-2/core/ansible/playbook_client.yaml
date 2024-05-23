@@ -3,14 +3,14 @@
 
 - hosts: client
   roles:
-    - role: common
+    - role: hashicorp.nomad_bench.common
 
-    - role: cni
+    - role: hashicorp.nomad_bench.cni
 
     - role: "geerlingguy.docker"
       become: true
 
-    - role: nomad
+    - role: hashicorp.nomad_bench.nomad
       vars:
         nomad_client_enabled: true
         nomad_server_join_retry_join: ["{{ terraform_nomad_server_join }}"]
@@ -31,7 +31,7 @@
               enabled: true
         nomad_acl_enabled: true
 
-    - role: influxdb_telegraf
+    - role: hashicorp.nomad_bench.influxdb_telegraf
       vars:
         influxdb_telegraf_input_nomad_url: "https://127.0.0.1:4646"
         influxdb_telegraf_input_nomad_tls_ca: "{{ nomad_config_dir }}tls/ca.pem"

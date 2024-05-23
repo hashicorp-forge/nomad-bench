@@ -3,9 +3,9 @@
 
 - hosts: lb
   roles:
-    - role: common
+    - role: hashicorp.nomad_bench.common
 
-    - role: nomad_lb
+    - role: hashicorp.nomad_bench.nomad_lb
       vars:
         nomad_lb_ca_cert: "{{ lookup('file', '../tls/nomad-agent-ca.pem') }}"
         nomad_lb_tls_cert: "{{ lookup('file', '../tls/global-client-nomad.pem') }}"

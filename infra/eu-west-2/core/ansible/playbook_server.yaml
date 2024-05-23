@@ -3,9 +3,9 @@
 
 - hosts: server
   roles:
-    - role: common
+    - role: hashicorp.nomad_bench.common
 
-    - role: nomad
+    - role: hashicorp.nomad_bench.nomad
       vars:
         nomad_server_enabled: true
         nomad_server_bootstrap_expect: 3
@@ -21,7 +21,7 @@
         nomad_cli_tls_cert_key: "{{ lookup('file', '../tls/global-cli-nomad-key.pem') }}"
         nomad_acl_enabled: true
 
-    - role: influxdb_telegraf
+    - role: hashicorp.nomad_bench.influxdb_telegraf
       vars:
         influxdb_telegraf_input_nomad_url: "https://127.0.0.1:4646"
         influxdb_telegraf_input_nomad_tls_ca: "{{ nomad_config_dir }}tls/ca.pem"
