@@ -16,8 +16,8 @@ The [infra](./infra) directory contains code which manages and handles deployed 
 and is partitioned by AWS region.
 
 ### Shared
-The [shared](./shared) directory contains reusable Terraform modules, Ansible roles, and Nomad job
-specifications.
+The [shared](./shared) directory contains reusable Terraform modules, Ansible roles and collections,
+and Nomad job specifications.
 
 ### Tools
 The [tools](./tools) directory hosts our custom written Go tools which are aimed at running and
