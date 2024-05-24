@@ -1,35 +1,75 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
-- name: "download_hashicorp_gpg_key"
-  become: true
+- name: "check_nomad_checksum_file"
+  ansible.builtin.stat:
+    path: "/tmp/nomad_{{ nomad_version }}_SHA256SUMS"
+  become: false
+  register: nomad_checksum
+
+- name: "get_nomad_checksum_file"
   ansible.builtin.get_url:
-    url: "https://apt.releases.hashicorp.com/gpg"
-    dest: "/usr/share/keyrings/hashicorp-archive-keyring.asc"
-    checksum: "sha256:cafb01beac341bf2a9ba89793e6dd2468110291adfbb6c62ed11a0cde6c09029"
+    url: "{{ nomad_checksum_file_url }}"
+    dest: "/tmp/nomad_{{ nomad_version }}_SHA256SUMS"
+    mode: "0644"
+  become: false
+  when: not nomad_checksum.stat.exists
 
-- name: "install_hashicorp_apt_repo"
-  become: true
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.asc] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
-    filename: "hashicorp"
-    state: "present"
+- name: "get_nomad_checksum"
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep "{{ nomad_package_name }}" "/tmp/nomad_{{ nomad_version }}_SHA256SUMS" | awk '{print $1}'
+  args:
+    executable: /bin/bash
+  become: false
+  register: nomad_sha256
 
-- name: "install_specific_nomad_version"
-  become: true
-  ansible.builtin.apt:
-    name: "nomad={{ nomad_pkg_version }}"
-    state: "present"
-    update_cache: true
-  when: nomad_pkg_version | length > 0
+- name: "stat_nomad_binary"
+  stat:
+    path: "{{ nomad_install_dir }}/nomad"
+  register: nomad_binary
 
-- name: "install_latest_nomad_version"
-  become: true
-  ansible.builtin.apt:
-    name: "nomad"
-    state: "present"
-    update_cache: true
-  when: nomad_pkg_version| length == 0
+- name: "check_nomad_binary"
+  ansible.builtin.command: "nomad version"
+  register: nomad_binary_version
+  become: false
+  changed_when: false
+  failed_when: false
+
+- block:
+  - name: "download_nomad_release_zip"
+    ansible.builtin.get_url:
+      url: "{{ nomad_release_zip_url }}"
+      dest: "/tmp/nomad.zip"
+      checksum: "sha256:{{ nomad_sha256.stdout }}"
+      timeout: "60"
+      mode: "600"
+    become: false
+  - name: "unzip_nomad_release"
+    ansible.builtin.unarchive:
+      remote_src: "yes"
+      src: "/tmp/nomad.zip"
+      dest: "/tmp/"
+      owner: "root"
+      group: "root"
+      mode: "0755"
+    become: true
+  - name: "move_nomad_release_binary"
+    ansible.builtin.copy:
+      src: "/tmp/nomad"
+      dest: "{{ nomad_install_dir }}/nomad"
+      owner: "root"
+      group: "root"
+      mode: "0755"
+      remote_src: true
+    become: true
+  - name: "remove_nomad_zip"
+    ansible.builtin.file:
+      path: "/tmp/nomad.zip"
+      state: "absent"
+  when: "not nomad_binary.stat.exists or nomad_binary_version is not defined or nomad_version|string not in nomad_binary_version.stdout"
+  notify:
+    - "restart_nomad"
 
 - name: "stat_log_file"
   stat: path="{{ nomad_log_file }}"
