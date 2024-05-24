@@ -1,0 +1,9 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+common_apt_packages: [
+  "jq",
+  "net-tools",
+  "ntp",
+  "unzip",
+]

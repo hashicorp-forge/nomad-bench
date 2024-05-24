@@ -2,3 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 
 - amazon.aws.ec2_metadata_facts:
+
+- name: "install_packages"
+  become: true
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: "present"
+    update_cache: true
+  loop: "{{ common_apt_packages }}"
