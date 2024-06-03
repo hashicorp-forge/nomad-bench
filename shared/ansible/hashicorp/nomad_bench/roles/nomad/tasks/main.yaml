@@ -1,6 +1,17 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
+- name: "create_service_file"
+  become: true
+  ansible.builtin.template:
+    src: "nomad.service.j2"
+    dest: "/etc/systemd/system/nomad.service"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  notify:
+    - "reload_systemd"
+
 - name: "check_nomad_checksum_file"
   ansible.builtin.stat:
     path: "/tmp/nomad_{{ nomad_version }}_SHA256SUMS"
