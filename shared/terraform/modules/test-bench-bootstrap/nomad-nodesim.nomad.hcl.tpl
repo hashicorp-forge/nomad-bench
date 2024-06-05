@@ -20,7 +20,7 @@ job "${terraform_job_name}" {
 
       config {
         privileged = true
-        image      = "jrasell/nomad-nodesim:latest"
+        image      = "hashicorppreview/nomad-nodesim:6cebba3"
         command    = "nomad-nodesim"
         args = [
           "-node-num=50",

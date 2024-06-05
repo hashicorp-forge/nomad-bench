@@ -13,7 +13,7 @@ job "${terraform_job_name}" {
       driver = "docker"
 
       config {
-        image   = "jrasell/nomad-load:latest"
+        image   = "hashicorppreview/nomad-bench-load:4e1ffce"
         command = "/bin/sh"
         args    = ["#{NOMAD_TASK_DIR}/script.sh"]
         ports   = ["nomad-load"]
