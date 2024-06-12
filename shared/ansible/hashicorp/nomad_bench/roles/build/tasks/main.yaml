@@ -42,17 +42,17 @@
 
   - name: "remove_nomad_binary"
     ansible.builtin.file:
-      path:  "/home/{{ build_user }}/nomad/pkg/linux_amd64/nomad"
+      path:  "/home/{{ build_user }}/{{ build_nomad_local_code_dir_name }}/pkg/linux_amd64/nomad"
       state: "absent"
 
   - name: "build_nomad_binary"
     shell: ". /etc/profile;make pkg/linux_amd64/nomad"
     args:
-      chdir: "/home/{{ build_user }}/nomad"
+      chdir: "/home/{{ build_user }}/{{ build_nomad_local_code_dir_name }}"
 
   - name: "fetch_nomad_compiled_binary"
     ansible.builtin.fetch:
-      src: "/home/{{ build_user }}/nomad/pkg/linux_amd64/nomad"
+      src: "/home/{{ build_user }}/{{ build_nomad_local_code_dir_name }}/pkg/linux_amd64/nomad"
       dest: "{{ build_nomad_local_code_path }}/pkg/linux_amd64/nomad"
       flat: yes
 

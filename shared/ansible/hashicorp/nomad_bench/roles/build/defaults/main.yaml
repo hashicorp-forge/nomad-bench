@@ -9,3 +9,4 @@ build_apt_packages: [
 
 build_user: "ubuntu"
 build_nomad_local_code_path: ""
+build_nomad_local_code_dir_name: "{{ build_nomad_local_code_path | split('/') | last }}"
