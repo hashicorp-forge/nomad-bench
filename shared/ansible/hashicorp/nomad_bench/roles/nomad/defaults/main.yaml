@@ -1,7 +1,7 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
-nomad_version: "1.8.0"
+nomad_version: "1.8.1"
 
 nomad_release_arch_map:
   amd64: "amd64"
