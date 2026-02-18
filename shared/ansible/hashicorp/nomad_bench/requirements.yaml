@@ -10,3 +10,6 @@ roles:
 collections:
   - name: "cloud.terraform"
     version: "2.0.0"
+  - name: "hashicorp.nomad_bench"
+    source: "shared/ansible/hashicorp/nomad_bench"
+    type: "dir"
