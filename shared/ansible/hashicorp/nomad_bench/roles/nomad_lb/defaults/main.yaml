@@ -1,9 +1,9 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
-nomad_lb_nginx_apt_version: "1.18.0-6ubuntu14.4"
+nomad_lb_nginx_apt_version: "1.18.0-6ubuntu14.8"
 nomad_lb_ca_cert: ""
 nomad_lb_tls_cert: ""
 nomad_lb_tls_cert_key: ""
-nomad_lb_server_ips: [ ]
-nomad_lb_client_ips: [ ]
+nomad_lb_server_ips: []
+nomad_lb_client_ips: []

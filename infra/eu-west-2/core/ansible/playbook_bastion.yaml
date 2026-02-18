@@ -8,8 +8,9 @@
     - role: gantsign.golang
       vars:
         golang_gopath: "/home/{{ ansible_user_id }}/go"
-        golang_version: "1.22.4"
-        golang_redis_sha256sum: "ba79d4526102575196273416239cca418a651e049c2b099f3159db85e7bade7d"
+        golang_version: "1.26.0"
+        golang_redis_sha256sum: "aac1b08a0fb0c4e0a7c1555beb7b59180b05dfc5a3d62e40e9de90cd42f88235"
+        golang_mirror: https://go.dev/dl
 
     - role: hashicorp.nomad_bench.influxdb_telegraf
       vars:
