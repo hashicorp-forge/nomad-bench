@@ -1,7 +1,7 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
-nomad_version: "1.8.1"
+nomad_version: "1.11.2"
 
 nomad_release_arch_map:
   amd64: "amd64"
@@ -37,10 +37,10 @@ nomad_server_bootstrap_expect: 3
 
 nomad_client_enabled: false
 
-nomad_host_volumes: [ ]
+nomad_host_volumes: []
 nomad_plugins: {}
 
-nomad_server_join_retry_join: [ ]
+nomad_server_join_retry_join: []
 nomad_server_join_retry_max: 0
 nomad_server_join_retry_interval: "30s"
 
