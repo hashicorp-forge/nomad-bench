@@ -1,12 +1,16 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 locals {
   influxdb_org_name = "nomad-eng"
 }
 
 resource "aws_ebs_volume" "influxdb" {
-  availability_zone = "eu-west-2a"
+  availability_zone = data.aws_availability_zones.available.names[0]
   size              = 10
 
   tags = {
