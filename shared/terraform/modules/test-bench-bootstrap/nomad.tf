@@ -24,6 +24,18 @@ locals {
     },
   ) }
 
+  nomad_raft_load_jobs = { for name, cluster in var.clusters : name => templatefile(
+    "${path.module}/nomad-raft-load.nomad.hcl.tpl",
+    {
+      terraform_job_name        = "nomad-raft-load-${name}"
+      terraform_job_namespace   = nomad_namespace.nomad_bench.name
+      terraform_nomad_addr      = "http://${cluster.server_private_ips[0]}:4646"
+      terraform_influxdb_url    = var.influxdb_url
+      terraform_influxdb_org    = data.influxdb-v2_organization.influx_org.name
+      terraform_influxdb_bucket = influxdb-v2_bucket.clusters[name].name
+    },
+  ) }
+
   nomad_gc_jobs = { for name, cluster in var.clusters : name => templatefile(
     "${path.module}/nomad-gc.nomad.hcl.tpl",
     {
@@ -101,6 +113,37 @@ EOF
   }
 }
 
+resource "terraform_data" "nomad_jobs_raft_load" {
+  for_each = var.clusters
+
+  provisioner "local-exec" {
+    command = <<EOF
+mkdir -p ${path.root}/jobs/
+cat <<JOB > ${path.root}/jobs/nomad-raft-load-${each.key}.nomad.hcl
+# This file is created by Terraform, but not managed to allow for local edits.
+# It will not be recreated if deleted.
+#
+# Replace the resource to recreate this file.
+# WARNING: ALL CHANGES WILL BE LOST.
+#   terraform apply -replace 'module.bootstrap.terraform_data.nomad_jobs_raft_load["${each.key}"]'
+
+${local.nomad_raft_load_jobs[each.key]}
+JOB
+
+# Hack to get around how Terraform handles ther dollar sign.
+sed -i.bkp 's|#{|$${|g' ${path.root}/jobs/nomad-raft-load-${each.key}.nomad.hcl
+rm -f ${path.root}/jobs/nomad-raft-load-${each.key}.nomad.hcl.bkp
+EOF
+  }
+
+  provisioner "local-exec" {
+    command = <<EOF
+ rm -f ${path.root}/jobs/nomad-raft-load-${each.key}.nomad.hcl
+ EOF
+    when    = destroy
+  }
+}
+
 resource "terraform_data" "nomad_jobs_gc" {
   for_each = var.clusters
 
@@ -137,6 +180,16 @@ resource "nomad_variable" "nomad_load_influxdb_token" {
 
   namespace = nomad_namespace.nomad_bench.name
   path      = "nomad/jobs/nomad-load-${each.key}"
+  items = {
+    influxdb_token = influxdb-v2_authorization.clusters[each.key].token
+  }
+}
+
+resource "nomad_variable" "nomad_raft_load_influxdb_token" {
+  for_each = var.clusters
+
+  namespace = nomad_namespace.nomad_bench.name
+  path      = "nomad/jobs/nomad-raft-load-${each.key}"
   items = {
     influxdb_token = influxdb-v2_authorization.clusters[each.key].token
   }
