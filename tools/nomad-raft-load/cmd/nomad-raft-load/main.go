@@ -190,6 +190,11 @@ func main() {
 		}
 	}
 
+	// Cleanup base policy for token operations
+	if err := ops.CleanupBasePolicy(); err != nil {
+		logger.Error("failed to cleanup base policy", "error", err)
+	}
+
 	logger.Info("Raft load test completed",
 		"elapsed_time", elapsed,
 		"operation_type", opType,

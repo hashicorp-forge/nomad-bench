@@ -4,6 +4,7 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"math/rand/v2"
 	"sync"
@@ -22,6 +23,9 @@ type Operations struct {
 	opType  OperationType
 	pattern OperationPattern
 
+	// Base policy for tokens
+	basePolicyName string
+
 	// Storage for accumulated resources (for accumulate-purge pattern)
 	tokens   []string
 	policies []string
@@ -30,14 +34,44 @@ type Operations struct {
 
 // NewOperations creates a new Operations handler
 func NewOperations(client *api.Client, logger hclog.Logger, opType OperationType, pattern OperationPattern) *Operations {
-	return &Operations{
-		client:   client,
-		logger:   logger.Named("operations"),
-		opType:   opType,
-		pattern:  pattern,
-		tokens:   make([]string, 0),
-		policies: make([]string, 0),
+	ops := &Operations{
+		client:         client,
+		logger:         logger.Named("operations"),
+		opType:         opType,
+		pattern:        pattern,
+		basePolicyName: "raft-load-base-policy",
+		tokens:         make([]string, 0),
+		policies:       make([]string, 0),
 	}
+
+	// Create a base policy for tokens if we're doing token operations
+	if opType == OperationTypeToken {
+		if err := ops.ensureBasePolicy(); err != nil {
+			logger.Error("failed to create base policy for tokens", "error", err)
+		}
+	}
+
+	return ops
+}
+
+// ensureBasePolicy creates a base policy that can be attached to tokens
+func (o *Operations) ensureBasePolicy() error {
+	policy := &api.ACLPolicy{
+		Name: o.basePolicyName,
+		Rules: `
+namespace "default" {
+  policy = "read"
+}
+`,
+	}
+
+	_, err := o.client.ACLPolicies().Upsert(policy, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create base policy: %w", err)
+	}
+
+	o.logger.Info("created base policy for tokens", "policy", o.basePolicyName)
+	return nil
 }
 
 // Run executes the load testing operations
@@ -62,7 +96,7 @@ func (o *Operations) Run(wg *sync.WaitGroup, workerID int, count int, lim *rate.
 				delay := time.Duration(rng.Float64() * float64(time.Second))
 				time.Sleep(delay)
 			}
-			if err := lim.Wait(nil); err != nil {
+			if err := lim.Wait(context.Background()); err != nil {
 				logger.Error("rate limiter error", "error", err)
 				continue
 			}
@@ -161,8 +195,9 @@ func (o *Operations) handlePolicyOperation(workerID, iteration int) error {
 // createToken creates an ACL token and returns its accessor ID
 func (o *Operations) createToken(name string) (string, error) {
 	token := &api.ACLToken{
-		Name: name,
-		Type: "client",
+		Name:     name,
+		Type:     "client",
+		Policies: []string{o.basePolicyName},
 	}
 
 	created, _, err := o.client.ACLTokens().Create(token, nil)
@@ -261,4 +296,19 @@ func (o *Operations) GetAccumulatedCount() (tokens int, policies int) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	return len(o.tokens), len(o.policies)
+}
+
+// CleanupBasePolicy removes the base policy used for token creation
+func (o *Operations) CleanupBasePolicy() error {
+	if o.opType != OperationTypeToken {
+		return nil
+	}
+
+	_, err := o.client.ACLPolicies().Delete(o.basePolicyName, nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete base policy: %w", err)
+	}
+
+	o.logger.Info("deleted base policy", "policy", o.basePolicyName)
+	return nil
 }
