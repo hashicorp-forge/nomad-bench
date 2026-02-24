@@ -20,6 +20,8 @@ resource "aws_ebs_volume" "influxdb" {
 
 
 resource "nomad_csi_volume_registration" "influxdb" {
+  depends_on = [data.nomad_plugin.aws_ebs]
+
   name         = "influxdb"
   volume_id    = "influxdb"
   capacity_min = "10G"
@@ -61,7 +63,8 @@ resource "nomad_variable" "influxdb" {
 }
 
 resource "nomad_job" "influxdb" {
-  jobspec = file("${path.module}/../../../shared/nomad/jobs/influxdb.nomad.hcl")
+  depends_on = [nomad_csi_volume_registration.influxdb]
+  jobspec    = file("${path.module}/../../../shared/nomad/jobs/influxdb.nomad.hcl")
 
   hcl2 {
     vars = {
