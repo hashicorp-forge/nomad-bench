@@ -101,8 +101,21 @@ Key metrics:
 ## Prerequisites
 
 - Nomad cluster with ACL system bootstrapped
-- `NOMAD_TOKEN` environment variable set with a management token
+- `NOMAD_TOKEN` environment variable set with a management token (must have permissions to create/delete ACL tokens and policies)
 - Go 1.23 or later (for building from source)
+
+## How It Works
+
+### Token Operations
+
+When running with `-type=token`, the utility automatically:
+1. Creates a base ACL policy (`raft-load-base-policy`) on startup with minimal read permissions
+2. Attaches this policy to all created tokens (required by Nomad for client tokens)
+3. Cleans up the base policy when the test completes
+
+### Policy Operations
+
+When running with `-type=policy`, the utility directly creates and deletes ACL policies with simple read permissions for the default namespace.
 
 ## Operation Patterns
 
@@ -195,25 +208,3 @@ You can customize the generated job file locally - it won't be overwritten by Te
 ```bash
 terraform apply -replace 'module.bootstrap.terraform_data.nomad_jobs_raft_load["<cluster-name>"]'
 ```
-
-## Building the Docker Image
-
-To build and push the Docker image:
-
-```bash
-docker build -t hashicorppreview/nomad-bench-raft-load:latest .
-docker push hashicorppreview/nomad-bench-raft-load:latest
-```
-
-Or with a specific tag:
-
-```bash
-VERSION=$(cat VERSION.txt)
-COMMIT=$(git rev-parse --short HEAD)
-docker build -t hashicorppreview/nomad-bench-raft-load:${COMMIT} .
-docker push hashicorppreview/nomad-bench-raft-load:${COMMIT}
-```
-
-## License
-
-MPL-2.0
