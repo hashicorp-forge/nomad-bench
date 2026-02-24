@@ -1,15 +1,19 @@
 # nomad-raft-load
 
-A utility for load testing Nomad's Raft consensus layer by performing operations on Nomad Namespaces, Variables, ACL tokens, and ACL policies.
+A utility for load testing Nomad's Raft consensus layer by performing operations
+on Nomad Namespaces, Variables, ACL tokens, and ACL policies.
 
 ## Overview
 
-`nomad-raft-load` tests Raft performance by creating and deleting Nomad resources (Namespaces, Variables, ACL tokens, and ACL policies), which are pure Raft operations that don't require client nodes. This allows you to isolate and measure the performance characteristics of Nomad's consensus layer.
+`nomad-raft-load` tests Raft performance by creating and deleting Nomad
+resources (Namespaces, Variables, ACL tokens, and ACL policies), which are pure
+Raft operations that don't require client nodes. This allows you to isolate and
+measure the performance characteristics of Nomad's consensus layer.
 
 ## Features
 
 - **Multiple Operation Types**: Test with Nomad Namespaces, Variables, ACL tokens, or ACL policies
-- **Flexible Patterns**: 
+- **Flexible Patterns**:
   - `create-only`: Continuously create resources
   - `create-delete`: Create and immediately delete (tests both write paths)
   - `accumulate-purge`: Create many resources, then purge them in bulk
@@ -134,20 +138,25 @@ Key metrics:
 
 ### Namespace Operations (Recommended)
 
-When running with `-type=namespace` (the default), the utility creates and deletes Nomad Namespaces with names like `raft-load-ns-{worker}-{iteration}-{timestamp}`.
+When running with `-type=namespace` (the default), the utility creates and
+deletes Nomad Namespaces with names like
+`raft-load-ns-{worker}-{iteration}-{timestamp}`.
 
 **Advantages:**
-- ✅ Works with or without ACLs enabled
-- ✅ Pure Raft operations with no encryption overhead
-- ✅ Fastest and cleanest Raft testing
-- ✅ No special setup required
-- ✅ Tests Raft in isolation
+- Works with or without ACLs enabled
+- Pure Raft operations with no encryption overhead
+- Fastest and cleanest Raft testing
+- No special setup required
+- Tests Raft in isolation
 
 ### Variable Operations
 
-When running with `-type=variable`, the utility creates and deletes Nomad Variables at paths like `raft-load/test-{worker}-{iteration}-{timestamp}`. Each variable contains a few test key-value pairs.
+When running with `-type=variable`, the utility creates and deletes Nomad
+Variables at paths like `raft-load/test-{worker}-{iteration}-{timestamp}`. Each
+variable contains a few test key-value pairs.
 
-**Note:** Variables use encryption, so they test Raft plus encryption overhead. Use namespaces for pure Raft testing.
+**Note:** Variables use encryption, so they test Raft plus encryption overhead.
+*Use namespaces for pure Raft testing.
 
 ### Token Operations
 
@@ -158,26 +167,28 @@ When running with `-type=token`, the utility automatically:
 
 ### Policy Operations
 
-When running with `-type=policy`, the utility directly creates and deletes ACL policies with simple read permissions for the default namespace.
+When running with `-type=policy`, the utility directly creates and deletes ACL
+policies with simple read permissions for the default namespace.
 
 **Note:** Both token and policy operations require ACLs to be enabled on the Nomad cluster.
 
 ## Operation Patterns
 
 ### create-only
-Creates resources continuously without deleting them. Useful for testing sustained write throughput and observing Raft log growth.
+Creates resources continuously without deleting them. Useful for testing
+sustained write throughput and observing Raft log growth.
 
-⚠️ **Warning**: This will accumulate resources. Clean up manually or use with finite `-count`.
+️**Warning**: This will accumulate resources. Clean up manually or use with finite `-count`.
 
 ### create-delete
 Creates a resource and immediately deletes it. Tests both write paths and measures round-trip Raft performance.
 
-✅ **Recommended** for most testing scenarios as it's self-cleaning.
+**Recommended** for most testing scenarios as it's self-cleaning.
 
 ### accumulate-purge
 Creates resources until a threshold, then deletes them in bulk. Useful for testing:
 - Burst creation performance
-- Bulk deletion performance  
+- Bulk deletion performance
 - Raft log compaction behavior
 
 Use `-purge-interval` for periodic purging during the test.
