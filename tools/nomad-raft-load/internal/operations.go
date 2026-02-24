@@ -27,9 +27,11 @@ type Operations struct {
 	basePolicyName string
 
 	// Storage for accumulated resources (for accumulate-purge pattern)
-	tokens   []string
-	policies []string
-	mu       sync.Mutex
+	tokens     []string
+	policies   []string
+	variables  []string
+	namespaces []string
+	mu         sync.Mutex
 }
 
 // NewOperations creates a new Operations handler
@@ -42,6 +44,8 @@ func NewOperations(client *api.Client, logger hclog.Logger, opType OperationType
 		basePolicyName: "raft-load-base-policy",
 		tokens:         make([]string, 0),
 		policies:       make([]string, 0),
+		variables:      make([]string, 0),
+		namespaces:     make([]string, 0),
 	}
 
 	// Create a base policy for tokens if we're doing token operations
@@ -111,6 +115,10 @@ func (o *Operations) Run(wg *sync.WaitGroup, workerID int, count int, lim *rate.
 			err = o.handleTokenOperation(workerID, iterations)
 		case OperationTypePolicy:
 			err = o.handlePolicyOperation(workerID, iterations)
+		case OperationTypeVariable:
+			err = o.handleVariableOperation(workerID, iterations)
+		case OperationTypeNamespace:
+			err = o.handleNamespaceOperation(workerID, iterations)
 		default:
 			logger.Error("unknown operation type", "type", o.opType)
 			return
@@ -192,6 +200,66 @@ func (o *Operations) handlePolicyOperation(workerID, iteration int) error {
 	}
 }
 
+// handleVariableOperation performs Nomad Variable operations
+func (o *Operations) handleVariableOperation(workerID, iteration int) error {
+	variablePath := fmt.Sprintf("raft-load/test-%d-%d-%d", workerID, iteration, time.Now().UnixNano())
+
+	switch o.pattern {
+	case PatternCreateOnly:
+		return o.createVariable(variablePath)
+
+	case PatternCreateDelete:
+		err := o.createVariable(variablePath)
+		if err != nil {
+			return err
+		}
+		return o.deleteVariable(variablePath)
+
+	case PatternAccumulatePurge:
+		err := o.createVariable(variablePath)
+		if err != nil {
+			return err
+		}
+		o.mu.Lock()
+		o.variables = append(o.variables, variablePath)
+		o.mu.Unlock()
+		return nil
+
+	default:
+		return fmt.Errorf("unknown pattern: %s", o.pattern)
+	}
+}
+
+// handleNamespaceOperation performs Namespace operations
+func (o *Operations) handleNamespaceOperation(workerID, iteration int) error {
+	namespaceName := fmt.Sprintf("raft-load-ns-%d-%d-%d", workerID, iteration, time.Now().UnixNano())
+
+	switch o.pattern {
+	case PatternCreateOnly:
+		return o.createNamespace(namespaceName)
+
+	case PatternCreateDelete:
+		err := o.createNamespace(namespaceName)
+		if err != nil {
+			return err
+		}
+		return o.deleteNamespace(namespaceName)
+
+	case PatternAccumulatePurge:
+		err := o.createNamespace(namespaceName)
+		if err != nil {
+			return err
+		}
+		o.mu.Lock()
+		o.namespaces = append(o.namespaces, namespaceName)
+		o.mu.Unlock()
+		return nil
+
+	default:
+		return fmt.Errorf("unknown pattern: %s", o.pattern)
+	}
+}
+
 // createToken creates an ACL token and returns its accessor ID
 func (o *Operations) createToken(name string) (string, error) {
 	token := &api.ACLToken{
@@ -251,16 +319,78 @@ func (o *Operations) deletePolicy(name string) error {
 	return nil
 }
 
+// createVariable creates a Nomad Variable
+func (o *Operations) createVariable(path string) error {
+	variable := &api.Variable{
+		Path: path,
+		Items: map[string]string{
+			"test-key-1": "test-value-1",
+			"test-key-2": "test-value-2",
+			"timestamp":  time.Now().Format(time.RFC3339),
+		},
+	}
+
+	_, _, err := o.client.Variables().Create(variable, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create variable: %w", err)
+	}
+
+	metrics.IncrCounter([]string{"variable", "created"}, 1)
+	return nil
+}
+
+// deleteVariable deletes a Nomad Variable by path
+func (o *Operations) deleteVariable(path string) error {
+	_, err := o.client.Variables().Delete(path, nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete variable: %w", err)
+	}
+
+	metrics.IncrCounter([]string{"variable", "deleted"}, 1)
+	return nil
+}
+
+// createNamespace creates a Nomad Namespace
+func (o *Operations) createNamespace(name string) error {
+	namespace := &api.Namespace{
+		Name:        name,
+		Description: "raft-load test namespace",
+	}
+
+	_, err := o.client.Namespaces().Register(namespace, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create namespace: %w", err)
+	}
+
+	metrics.IncrCounter([]string{"namespace", "created"}, 1)
+	return nil
+}
+
+// deleteNamespace deletes a Nomad Namespace by name
+func (o *Operations) deleteNamespace(name string) error {
+	_, err := o.client.Namespaces().Delete(name, nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete namespace: %w", err)
+	}
+
+	metrics.IncrCounter([]string{"namespace", "deleted"}, 1)
+	return nil
+}
+
 // Purge removes all accumulated resources (for accumulate-purge pattern)
 func (o *Operations) Purge() error {
 	o.mu.Lock()
 	tokens := make([]string, len(o.tokens))
 	policies := make([]string, len(o.policies))
+	variables := make([]string, len(o.variables))
+	namespaces := make([]string, len(o.namespaces))
 	copy(tokens, o.tokens)
 	copy(policies, o.policies)
+	copy(variables, o.variables)
+	copy(namespaces, o.namespaces)
 	o.mu.Unlock()
 
-	o.logger.Info("starting purge", "tokens", len(tokens), "policies", len(policies))
+	o.logger.Info("starting purge", "tokens", len(tokens), "policies", len(policies), "variables", len(variables), "namespaces", len(namespaces))
 
 	var errs []error
 
@@ -278,9 +408,25 @@ func (o *Operations) Purge() error {
 		}
 	}
 
+	// Delete all variables
+	for _, path := range variables {
+		if err := o.deleteVariable(path); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	// Delete all namespaces
+	for _, name := range namespaces {
+		if err := o.deleteNamespace(name); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
 	o.mu.Lock()
 	o.tokens = make([]string, 0)
 	o.policies = make([]string, 0)
+	o.variables = make([]string, 0)
+	o.namespaces = make([]string, 0)
 	o.mu.Unlock()
 
 	if len(errs) > 0 {
@@ -292,10 +438,10 @@ func (o *Operations) Purge() error {
 }
 
 // GetAccumulatedCount returns the number of accumulated resources
-func (o *Operations) GetAccumulatedCount() (tokens int, policies int) {
+func (o *Operations) GetAccumulatedCount() (tokens int, policies int, variables int, namespaces int) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
-	return len(o.tokens), len(o.policies)
+	return len(o.tokens), len(o.policies), len(o.variables), len(o.namespaces)
 }
 
 // CleanupBasePolicy removes the base policy used for token creation

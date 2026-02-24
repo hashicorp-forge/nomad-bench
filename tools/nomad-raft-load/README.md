@@ -1,14 +1,14 @@
 # nomad-raft-load
 
-A utility for load testing Nomad's Raft consensus layer by performing ACL operations.
+A utility for load testing Nomad's Raft consensus layer by performing operations on Nomad Namespaces, Variables, ACL tokens, and ACL policies.
 
 ## Overview
 
-`nomad-raft-load` tests Raft performance by creating and deleting ACL tokens and policies, which are pure Raft operations that don't require client nodes. This allows you to isolate and measure the performance characteristics of Nomad's consensus layer.
+`nomad-raft-load` tests Raft performance by creating and deleting Nomad resources (Namespaces, Variables, ACL tokens, and ACL policies), which are pure Raft operations that don't require client nodes. This allows you to isolate and measure the performance characteristics of Nomad's consensus layer.
 
 ## Features
 
-- **Multiple Operation Types**: Test with ACL tokens or ACL policies
+- **Multiple Operation Types**: Test with Nomad Namespaces, Variables, ACL tokens, or ACL policies
 - **Flexible Patterns**: 
   - `create-only`: Continuously create resources
   - `create-delete`: Create and immediately delete (tests both write paths)
@@ -33,6 +33,28 @@ go install github.com/hashicorp/nomad-bench/tools/nomad-raft-load/cmd/nomad-raft
 ## Usage
 
 ### Basic Examples
+
+Test with Nomad Namespaces (default, pure Raft with no encryption overhead):
+
+```bash
+./nomad-raft-load \
+  -nomad-addr=https://nomad.example.com \
+  -type=namespace \
+  -pattern=create-delete \
+  -rate=10 \
+  -workers=5
+```
+
+Test with Nomad Variables (works without ACLs, but includes encryption overhead):
+
+```bash
+./nomad-raft-load \
+  -nomad-addr=https://nomad.example.com \
+  -type=variable \
+  -pattern=create-delete \
+  -rate=10 \
+  -workers=5
+```
 
 Test with ACL tokens using create-delete pattern:
 
@@ -71,7 +93,7 @@ Run for a specific duration:
 ### Command-Line Flags
 
 - `-nomad-addr`: Nomad server address (required)
-- `-type`: Operation type - `token` or `policy` (default: `token`)
+- `-type`: Operation type - `namespace`, `variable`, `token`, or `policy` (default: `namespace`)
 - `-pattern`: Operation pattern - `create-only`, `create-delete`, or `accumulate-purge` (default: `create-delete`)
 - `-rate`: Operations per second (default: `10`)
 - `-burst`: Burst rate for operations (default: `1`)
@@ -97,14 +119,35 @@ Key metrics:
 - `nomad_raft_load.token.deleted`: Tokens deleted counter
 - `nomad_raft_load.policy.created`: Policies created counter
 - `nomad_raft_load.policy.deleted`: Policies deleted counter
+- `nomad_raft_load.variable.created`: Variables created counter
+- `nomad_raft_load.variable.deleted`: Variables deleted counter
+- `nomad_raft_load.namespace.created`: Namespaces created counter
+- `nomad_raft_load.namespace.deleted`: Namespaces deleted counter
 
 ## Prerequisites
 
-- Nomad cluster with ACL system bootstrapped
-- `NOMAD_TOKEN` environment variable set with a management token (must have permissions to create/delete ACL tokens and policies)
+- Nomad cluster (ACLs optional for variable operations)
+- For token/policy operations: ACL system bootstrapped and `NOMAD_TOKEN` environment variable set with a management token
 - Go 1.23 or later (for building from source)
 
 ## How It Works
+
+### Namespace Operations (Recommended)
+
+When running with `-type=namespace` (the default), the utility creates and deletes Nomad Namespaces with names like `raft-load-ns-{worker}-{iteration}-{timestamp}`.
+
+**Advantages:**
+- ✅ Works with or without ACLs enabled
+- ✅ Pure Raft operations with no encryption overhead
+- ✅ Fastest and cleanest Raft testing
+- ✅ No special setup required
+- ✅ Tests Raft in isolation
+
+### Variable Operations
+
+When running with `-type=variable`, the utility creates and deletes Nomad Variables at paths like `raft-load/test-{worker}-{iteration}-{timestamp}`. Each variable contains a few test key-value pairs.
+
+**Note:** Variables use encryption, so they test Raft plus encryption overhead. Use namespaces for pure Raft testing.
 
 ### Token Operations
 
@@ -116,6 +159,8 @@ When running with `-type=token`, the utility automatically:
 ### Policy Operations
 
 When running with `-type=policy`, the utility directly creates and deletes ACL policies with simple read permissions for the default namespace.
+
+**Note:** Both token and policy operations require ACLs to be enabled on the Nomad cluster.
 
 ## Operation Patterns
 
@@ -141,12 +186,12 @@ Use `-purge-interval` for periodic purging during the test.
 
 ### Stress Test
 
-High-rate test with many workers:
+High-rate test with many workers using namespaces:
 
 ```bash
 ./nomad-raft-load \
   -nomad-addr=$NOMAD_ADDR \
-  -type=token \
+  -type=namespace \
   -pattern=create-delete \
   -rate=1000 \
   -burst=100 \
@@ -156,12 +201,12 @@ High-rate test with many workers:
 
 ### Endurance Test
 
-Moderate sustained load:
+Moderate sustained load with namespaces:
 
 ```bash
 ./nomad-raft-load \
   -nomad-addr=$NOMAD_ADDR \
-  -type=policy \
+  -type=namespace \
   -pattern=create-delete \
   -rate=50 \
   -workers=10 \
@@ -170,16 +215,44 @@ Moderate sustained load:
 
 ### Burst Test
 
-Test burst handling with accumulate-purge:
+Test burst handling with accumulate-purge using namespaces:
 
 ```bash
 ./nomad-raft-load \
   -nomad-addr=$NOMAD_ADDR \
-  -type=token \
+  -type=namespace \
   -pattern=accumulate-purge \
   -rate=500 \
   -burst=100 \
   -workers=20 \
   -count=10000 \
   -purge-interval=30s
+```
+
+### Variable Operations Test
+
+Test with variables (includes encryption overhead):
+
+```bash
+./nomad-raft-load \
+  -nomad-addr=$NOMAD_ADDR \
+  -type=variable \
+  -pattern=create-delete \
+  -rate=100 \
+  -workers=10 \
+  -duration=5m
+```
+
+### ACL-Specific Test
+
+Test ACL token operations (requires ACL-enabled cluster):
+
+```bash
+./nomad-raft-load \
+  -nomad-addr=$NOMAD_ADDR \
+  -type=token \
+  -pattern=create-delete \
+  -rate=100 \
+  -workers=10 \
+  -duration=5m
 ```

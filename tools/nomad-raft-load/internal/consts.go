@@ -8,8 +8,10 @@ type OperationPattern string
 
 const (
 	// Operation types - what Raft operations to perform
-	OperationTypeToken  OperationType = "token"
-	OperationTypePolicy OperationType = "policy"
+	OperationTypeToken     OperationType = "token"
+	OperationTypePolicy    OperationType = "policy"
+	OperationTypeVariable  OperationType = "variable"
+	OperationTypeNamespace OperationType = "namespace"
 
 	// Operation patterns - how to perform the operations
 	PatternCreateOnly      OperationPattern = "create-only"

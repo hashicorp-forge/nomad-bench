@@ -27,7 +27,7 @@ var (
 	httpAddr  = flag.String("http-addr", "0.0.0.0", "The address to bind the HTTP server to")
 	httpPort  = flag.String("http-port", "8080", "The port to bind the HTTP server to")
 
-	operationType    = flag.String("type", string(internal.OperationTypeToken), "The type of operation to perform (token or policy)")
+	operationType    = flag.String("type", string(internal.OperationTypeNamespace), "The type of operation to perform (namespace, token, policy, or variable)")
 	operationPattern = flag.String("pattern", string(internal.PatternCreateDelete), "The operation pattern (create-only, create-delete, accumulate-purge)")
 	count            = flag.Int("count", 0, "The number of operations to perform per worker. If 0, runs continuously")
 	reqRate          = flag.Float64("rate", 10, "The rate of operations per second")
@@ -59,7 +59,7 @@ func main() {
 
 	// Validate flags
 	opType := internal.OperationType(*operationType)
-	if opType != internal.OperationTypeToken && opType != internal.OperationTypePolicy {
+	if opType != internal.OperationTypeToken && opType != internal.OperationTypePolicy && opType != internal.OperationTypeVariable && opType != internal.OperationTypeNamespace {
 		logger.Error("invalid operation type", "type", *operationType)
 		os.Exit(1)
 	}
@@ -95,11 +95,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Verify ACL system is enabled
-	_, _, err = c.ACLTokens().List(nil)
-	if err != nil {
-		logger.Error("failed to query ACL tokens - ensure ACL system is bootstrapped", "error", err)
-		os.Exit(1)
+	// Verify ACL system is enabled (only required for token/policy operations)
+	if opType == internal.OperationTypeToken || opType == internal.OperationTypePolicy {
+		_, _, err = c.ACLTokens().List(nil)
+		if err != nil {
+			logger.Error("failed to query ACL tokens - ensure ACL system is bootstrapped", "error", err)
+			os.Exit(1)
+		}
 	}
 
 	ops := internal.NewOperations(c, logger, opType, opPattern)
@@ -131,8 +133,8 @@ func main() {
 			for {
 				select {
 				case <-ticker.C:
-					tokens, policies := ops.GetAccumulatedCount()
-					logger.Info("periodic purge triggered", "tokens", tokens, "policies", policies)
+					tokens, policies, variables, namespaces := ops.GetAccumulatedCount()
+					logger.Info("periodic purge triggered", "tokens", tokens, "policies", policies, "variables", variables, "namespaces", namespaces)
 					if err := ops.Purge(); err != nil {
 						logger.Error("periodic purge failed", "error", err)
 					}
@@ -181,9 +183,9 @@ func main() {
 
 	// Final purge for accumulate-purge pattern
 	if opPattern == internal.PatternAccumulatePurge {
-		tokens, policies := ops.GetAccumulatedCount()
-		if tokens > 0 || policies > 0 {
-			logger.Info("performing final purge", "tokens", tokens, "policies", policies)
+		tokens, policies, variables, namespaces := ops.GetAccumulatedCount()
+		if tokens > 0 || policies > 0 || variables > 0 || namespaces > 0 {
+			logger.Info("performing final purge", "tokens", tokens, "policies", policies, "variables", variables, "namespaces", namespaces)
 			if err := ops.Purge(); err != nil {
 				logger.Error("final purge failed", "error", err)
 			}
