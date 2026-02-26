@@ -14,3 +14,4 @@ tls/
 # Test cluster nodesim jobs.
 **/*/jobs/nomad-nodesim-*
 tools/nomad-load/nomad-load
+tools/nomad-raft-load/nomad-raft-load

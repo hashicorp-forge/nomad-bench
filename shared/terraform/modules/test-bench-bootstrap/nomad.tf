@@ -24,6 +24,8 @@ locals {
     },
   ) }
 
+
+
   nomad_gc_jobs = { for name, cluster in var.clusters : name => templatefile(
     "${path.module}/nomad-gc.nomad.hcl.tpl",
     {
@@ -100,6 +102,8 @@ EOF
     when    = destroy
   }
 }
+
+
 
 resource "terraform_data" "nomad_jobs_gc" {
   for_each = var.clusters
