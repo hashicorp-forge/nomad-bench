@@ -69,6 +69,12 @@ terraform apply --auto-approve
 
 Once the infrastructure has been provisioned, you can extract the mTLS and SSH materials from the
 Terraform state. Following the command will detail which files are written to your local machine.
+
+> [!WARNING]
+> If you used this repository to provision the core cluster in the past, you
+  need to manually delete the `tls/` and `keys/` directories before running
+  `make`.
+
 ```console
 make
 ```
