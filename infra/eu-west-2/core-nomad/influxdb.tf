@@ -63,8 +63,11 @@ resource "nomad_variable" "influxdb" {
 }
 
 resource "nomad_job" "influxdb" {
-  depends_on = [nomad_csi_volume_registration.influxdb]
-  jobspec    = file("${path.module}/../../../shared/nomad/jobs/influxdb.nomad.hcl")
+  depends_on = [
+    nomad_csi_volume_registration.influxdb,
+    nomad_variable.influxdb
+  ]
+  jobspec = file("${path.module}/../../../shared/nomad/jobs/influxdb.nomad.hcl")
 
   hcl2 {
     vars = {
