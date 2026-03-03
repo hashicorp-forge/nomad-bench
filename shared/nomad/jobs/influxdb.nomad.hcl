@@ -73,8 +73,8 @@ job "influxdb" {
       template {
         data        = <<EOF
 {{with nomadVar "nomad/jobs/influxdb"}}
-DOCKER_INFLUXDB_INIT_PASSWORD={{.admin_password}}
-DOCKER_INFLUXDB_INIT_ADMIN_TOKEN={{.admin_token}}
+DOCKER_INFLUXDB_INIT_PASSWORD="{{.admin_password}}"
+DOCKER_INFLUXDB_INIT_ADMIN_TOKEN="{{.admin_token}}"
 {{end}}
 EOF
         destination = "${NOMAD_SECRETS_DIR}/env"
